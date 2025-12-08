@@ -11,7 +11,6 @@ class DataLogger:
         self.file = open(self.filename, "a", newline="")
         self.writer = csv.writer(self.file)
 
-        # Scriem header doar dacă fișierul e nou
         if not self.file_exists:
             self.writer.writerow([
                 "timestamp",

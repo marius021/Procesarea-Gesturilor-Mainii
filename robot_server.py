@@ -22,4 +22,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 line, buffer = buffer.split(b"\n", 1)
                 cmd = line.decode("utf-8").strip()
                 print(f"[Robot] Command received: {cmd}")
-                # aici poți actualiza o interfață grafică, o simulare etc.
+                
