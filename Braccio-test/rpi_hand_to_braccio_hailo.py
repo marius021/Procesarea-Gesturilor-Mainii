@@ -10,7 +10,7 @@ import mediapipe as mp
 # CONFIG (smooth mode)
 # ============================================================
 
-SERIAL_PORT = "/dev/ttyACM0"#schimbă dacă e /dev/ttyUSB0
+SERIAL_PORT = "/dev/ttyACM1"#schimbă dacă e /dev/ttyUSB0
 BAUD_RATE   = 115200
 TIMEOUT     = 1
 

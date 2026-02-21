@@ -1,4 +1,4 @@
-12#include <Braccio.h>
+#include <Braccio.h>
 #include <Servo.h>
 
 Servo base;
