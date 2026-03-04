@@ -1,0 +1,96 @@
+[2026-03-04 21:54:32.314] [3145] [HailoRT] [info] [vdevice.cpp:523] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: NONE, multi_process_service: false
+[2026-03-04 21:54:32.328] [3145] [HailoRT] [info] [device.cpp:49] [Device] OS Version: Linux 6.12.62+rpt-rpi-2712 #1 SMP PREEMPT Debian 1:6.12.62-1+rpt1~bookworm (2026-01-19) aarch64
+[2026-03-04 21:54:32.330] [3145] [HailoRT] [info] [control.cpp:108] [control__parse_identify_results] firmware_version is: 4.20.0
+[2026-03-04 21:54:32.330] [3145] [HailoRT] [info] [vdevice.cpp:651] [create] VDevice Infos: 0001:01:00.0
+[2026-03-04 21:54:32.330] [3145] [HailoRT] [warning] [device_internal.cpp:616] [check_hef_is_compatible] HEF was compiled for Hailo8L device, while the device itself is Hailo8. This will result in lower performance.
+[2026-03-04 21:54:32.331] [3145] [HailoRT] [warning] [device_internal.cpp:616] [check_hef_is_compatible] HEF was compiled for Hailo8L device, while the device itself is Hailo8. This will result in lower performance.
+[2026-03-04 21:54:32.344] [3145] [HailoRT] [info] [buffer_requirements.cpp:195] [find_initial_desc_page_size] Using non-default initial_desc_page_size of 64, due to a small transfer size (8)
+[2026-03-04 21:54:32.344] [3145] [HailoRT] [info] [buffer_requirements.cpp:195] [find_initial_desc_page_size] Using non-default initial_desc_page_size of 64, due to a small transfer size (64)
+[2026-03-04 21:54:32.344] [3145] [HailoRT] [info] [buffer_requirements.cpp:195] [find_initial_desc_page_size] Using non-default initial_desc_page_size of 64, due to a small transfer size (8)
+[2026-03-04 21:54:32.345] [3145] [HailoRT] [info] [buffer_requirements.cpp:195] [find_initial_desc_page_size] Using non-default initial_desc_page_size of 64, due to a small transfer size (64)
+[2026-03-04 21:54:32.346] [3145] [HailoRT] [info] [internal_buffer_manager.cpp:204] [print_execution_results] Planned internal buffer memory: CMA memory 0, user memory 25600. memory to edge layer usage factor is 1
+[2026-03-04 21:54:32.346] [3145] [HailoRT] [info] [internal_buffer_manager.cpp:212] [print_execution_results] Default Internal buffer planner executed successfully
+[2026-03-04 21:54:32.373] [3145] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 42.065831 milliseconds
+[2026-03-04 21:54:32.373] [3145] [HailoRT] [info] [vdevice.cpp:749] [configure] Configuring HEF on VDevice took 43.028421 milliseconds
+[2026-03-04 21:54:32.376] [3145] [HailoRT] [info] [control.cpp:108] [control__parse_identify_results] firmware_version is: 4.20.0
+[2026-03-04 21:54:32.377] [3145] [HailoRT] [info] [control.cpp:108] [control__parse_identify_results] firmware_version is: 4.20.0
+[2026-03-04 21:54:32.378] [3145] [HailoRT] [info] [core_op.cpp:156] [activate] Activating hand_landmark_lite took 0.385869 milliseconds. Note that the function is asynchronous and thus the network is not fully activated yet.
+[2026-03-04 21:54:32.378] [3145] [HailoRT] [info] [core_op.cpp:156] [activate] Activating hand_landmark_lite took 0.408942 milliseconds. Note that the function is asynchronous and thus the network is not fully activated yet.
+[2026-03-04 21:54:32.383] [3145] [HailoRT] [info] [control.cpp:108] [control__parse_identify_results] firmware_version is: 4.20.0
+[2026-03-04 21:54:32.384] [3145] [HailoRT] [info] [control.cpp:108] [control__parse_identify_results] firmware_version is: 4.20.0
+[2026-03-04 21:54:32.384] [3145] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl2hand_landmark_lite/input_layer1 | hw_frame_size: 150528)
+[2026-03-04 21:54:32.384] [3145] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating hand_landmark_lite/input_layer1...
+[2026-03-04 21:54:32.384] [3145] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'hand_landmark_lite/input_layer1': (HwWriteEl2hand_landmark_lite/input_layer1 | hw_frame_size: 150528) >> HW
+[2026-03-04 21:54:32.384] [3145] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl3hand_landmark_lite/fc1 | hw_frame_size: 64)
+[2026-03-04 21:54:32.385] [3145] [HailoRT] [info] [queue_elements.cpp:657] [create] Created (PullQEl_hw_read3hand_landmark_lite/fc1)
+[2026-03-04 21:54:32.385] [3145] [HailoRT] [info] [filter_elements.cpp:375] [create] Created (PostInferEl3hand_landmark_lite/fc1 | Padding Periph shape - src_shape: (1, 1, 63), dst_shape: (1, 1, 63))
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl3hand_landmark_lite/fc1 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating hand_landmark_lite/fc1...
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'hand_landmark_lite/fc1': HW >> (HwReadEl3hand_landmark_lite/fc1 | hw_frame_size: 64) >> (PullQEl_hw_read3hand_landmark_lite/fc1) >> (PostInferEl3hand_landmark_lite/fc1 | Padding Periph shape - src_shape: (1, 1, 63), dst_shape: (1, 1, 63)) >> (UserBuffQEl3hand_landmark_lite/fc1 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl2hand_landmark_lite/fc2 | hw_frame_size: 8)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:657] [create] Created (PullQEl_hw_read2hand_landmark_lite/fc2)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [filter_elements.cpp:375] [create] Created (PostInferEl2hand_landmark_lite/fc2 | Padding Periph shape - src_shape: (1, 1, 1), dst_shape: (1, 1, 1))
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl2hand_landmark_lite/fc2 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating hand_landmark_lite/fc2...
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'hand_landmark_lite/fc2': HW >> (HwReadEl2hand_landmark_lite/fc2 | hw_frame_size: 8) >> (PullQEl_hw_read2hand_landmark_lite/fc2) >> (PostInferEl2hand_landmark_lite/fc2 | Padding Periph shape - src_shape: (1, 1, 1), dst_shape: (1, 1, 1)) >> (UserBuffQEl2hand_landmark_lite/fc2 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl1hand_landmark_lite/fc3 | hw_frame_size: 64)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:657] [create] Created (PullQEl_hw_read1hand_landmark_lite/fc3)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [filter_elements.cpp:375] [create] Created (PostInferEl1hand_landmark_lite/fc3 | Padding Periph shape - src_shape: (1, 1, 63), dst_shape: (1, 1, 63))
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl1hand_landmark_lite/fc3 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating hand_landmark_lite/fc3...
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'hand_landmark_lite/fc3': HW >> (HwReadEl1hand_landmark_lite/fc3 | hw_frame_size: 64) >> (PullQEl_hw_read1hand_landmark_lite/fc3) >> (PostInferEl1hand_landmark_lite/fc3 | Padding Periph shape - src_shape: (1, 1, 63), dst_shape: (1, 1, 63)) >> (UserBuffQEl1hand_landmark_lite/fc3 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0hand_landmark_lite/fc4 | hw_frame_size: 8)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:657] [create] Created (PullQEl_hw_read0hand_landmark_lite/fc4)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [filter_elements.cpp:375] [create] Created (PostInferEl0hand_landmark_lite/fc4 | Padding Periph shape - src_shape: (1, 1, 1), dst_shape: (1, 1, 1))
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0hand_landmark_lite/fc4 | timeout: 10s)
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating hand_landmark_lite/fc4...
+[2026-03-04 21:54:32.386] [3145] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'hand_landmark_lite/fc4': HW >> (HwReadEl0hand_landmark_lite/fc4 | hw_frame_size: 8) >> (PullQEl_hw_read0hand_landmark_lite/fc4) >> (PostInferEl0hand_landmark_lite/fc4 | Padding Periph shape - src_shape: (1, 1, 1), dst_shape: (1, 1, 1)) >> (UserBuffQEl0hand_landmark_lite/fc4 | timeout: 10s)
+[2026-03-04 21:54:37.387] [3165] [HailoRT] [info] [vdevice_native_stream.cpp:331] [read_impl] Failed read from stream HAILO_STREAM_ABORT(63) (device: 0001:01:00.0)
+[2026-03-04 21:54:37.387] [3161] [HailoRT] [info] [vdevice_native_stream.cpp:331] [read_impl] Failed read from stream HAILO_STREAM_ABORT(63) (device: 0001:01:00.0)
+[2026-03-04 21:54:37.387] [3175] [HailoRT] [info] [vdevice_native_stream.cpp:142] [write_impl] Failed write to stream hand_landmark_lite/input_layer1 (device: 0001:01:00.0) with status=HAILO_STREAM_ABORT(63)
+[2026-03-04 21:54:37.387] [3165] [HailoRT] [info] [edge_elements.cpp:396] [run_pull] Reading from stream was aborted!
+[2026-03-04 21:54:37.387] [3175] [HailoRT] [info] [edge_elements.cpp:87] [run_push] Failed to send on input stream InputStream(index=2, name=hand_landmark_lite/input_layer1) because stream was aborted
+[2026-03-04 21:54:37.387] [3175] [HailoRT] [info] [vstream.cpp:778] [write] Sending to VStream was aborted!
+[2026-03-04 21:54:37.387] [3161] [HailoRT] [info] [edge_elements.cpp:396] [run_pull] Reading from stream was aborted!
+[2026-03-04 21:54:37.387] [3165] [HailoRT] [info] [queue_elements.cpp:738] [run_in_thread] run_pull of queue element PullQEl_hw_read1hand_landmark_lite/fc3 was aborted!
+[2026-03-04 21:54:37.387] [3167] [HailoRT] [info] [vdevice_native_stream.cpp:331] [read_impl] Failed read from stream HAILO_STREAM_ABORT(63) (device: 0001:01:00.0)
+[2026-03-04 21:54:37.387] [3167] [HailoRT] [info] [edge_elements.cpp:396] [run_pull] Reading from stream was aborted!
+[2026-03-04 21:54:37.387] [3167] [HailoRT] [info] [queue_elements.cpp:738] [run_in_thread] run_pull of queue element PullQEl_hw_read0hand_landmark_lite/fc4 was aborted!
+[2026-03-04 21:54:37.387] [3166] [HailoRT] [info] [queue_elements.cpp:706] [run_pull] Shutdown event was signaled in dequeue of queue element PullQEl_hw_read1hand_landmark_lite/fc3!
+[2026-03-04 21:54:37.387] [3166] [HailoRT] [info] [queue_elements.cpp:862] [run_in_thread] Shutdown event was signaled in run_pull of UserBuffQEl1hand_landmark_lite/fc3!
+[2026-03-04 21:54:37.387] [3161] [HailoRT] [info] [queue_elements.cpp:738] [run_in_thread] run_pull of queue element PullQEl_hw_read3hand_landmark_lite/fc1 was aborted!
+[2026-03-04 21:54:37.387] [3173] [HailoRT] [info] [queue_elements.cpp:834] [run_pull] Shutdown event was signaled in dequeue of queue element UserBuffQEl1hand_landmark_lite/fc3!
+[2026-03-04 21:54:37.387] [3168] [HailoRT] [info] [queue_elements.cpp:706] [run_pull] Shutdown event was signaled in dequeue of queue element PullQEl_hw_read0hand_landmark_lite/fc4!
+[2026-03-04 21:54:37.387] [3162] [HailoRT] [info] [queue_elements.cpp:706] [run_pull] Shutdown event was signaled in dequeue of queue element PullQEl_hw_read3hand_landmark_lite/fc1!
+[2026-03-04 21:54:37.387] [3168] [HailoRT] [info] [queue_elements.cpp:862] [run_in_thread] Shutdown event was signaled in run_pull of UserBuffQEl0hand_landmark_lite/fc4!
+[2026-03-04 21:54:37.387] [3173] [HailoRT] [info] [vstream.cpp:1138] [read] Receiving to VStream was shutdown!
+[2026-03-04 21:54:37.387] [3162] [HailoRT] [info] [queue_elements.cpp:862] [run_in_thread] Shutdown event was signaled in run_pull of UserBuffQEl3hand_landmark_lite/fc1!
+[2026-03-04 21:54:37.387] [3163] [HailoRT] [info] [vdevice_native_stream.cpp:331] [read_impl] Failed read from stream HAILO_STREAM_ABORT(63) (device: 0001:01:00.0)
+[2026-03-04 21:54:37.387] [3163] [HailoRT] [info] [edge_elements.cpp:396] [run_pull] Reading from stream was aborted!
+[2026-03-04 21:54:37.387] [3174] [HailoRT] [info] [queue_elements.cpp:834] [run_pull] Shutdown event was signaled in dequeue of queue element UserBuffQEl0hand_landmark_lite/fc4!
+[2026-03-04 21:54:37.387] [3171] [HailoRT] [info] [queue_elements.cpp:834] [run_pull] Shutdown event was signaled in dequeue of queue element UserBuffQEl3hand_landmark_lite/fc1!
+[2026-03-04 21:54:37.387] [3171] [HailoRT] [info] [vstream.cpp:1138] [read] Receiving to VStream was shutdown!
+[2026-03-04 21:54:37.387] [3163] [HailoRT] [info] [queue_elements.cpp:738] [run_in_thread] run_pull of queue element PullQEl_hw_read2hand_landmark_lite/fc2 was aborted!
+[2026-03-04 21:54:37.387] [3174] [HailoRT] [info] [vstream.cpp:1138] [read] Receiving to VStream was shutdown!
+[2026-03-04 21:54:37.387] [3164] [HailoRT] [info] [queue_elements.cpp:706] [run_pull] Shutdown event was signaled in dequeue of queue element PullQEl_hw_read2hand_landmark_lite/fc2!
+[2026-03-04 21:54:37.387] [3164] [HailoRT] [info] [queue_elements.cpp:862] [run_in_thread] Shutdown event was signaled in run_pull of UserBuffQEl2hand_landmark_lite/fc2!
+[2026-03-04 21:54:37.387] [3172] [HailoRT] [info] [queue_elements.cpp:834] [run_pull] Shutdown event was signaled in dequeue of queue element UserBuffQEl2hand_landmark_lite/fc2!
+[2026-03-04 21:54:37.387] [3172] [HailoRT] [info] [vstream.cpp:1138] [read] Receiving to VStream was shutdown!
+[2026-03-04 21:54:37.388] [3161] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element PullQEl_hw_read3hand_landmark_lite/fc1 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element PullQEl_hw_read3hand_landmark_lite/fc1 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3162] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl3hand_landmark_lite/fc1 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl3hand_landmark_lite/fc1 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3163] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element PullQEl_hw_read2hand_landmark_lite/fc2 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element PullQEl_hw_read2hand_landmark_lite/fc2 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3164] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl2hand_landmark_lite/fc2 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl2hand_landmark_lite/fc2 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3165] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element PullQEl_hw_read1hand_landmark_lite/fc3 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element PullQEl_hw_read1hand_landmark_lite/fc3 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3166] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl1hand_landmark_lite/fc3 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl1hand_landmark_lite/fc3 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3167] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element PullQEl_hw_read0hand_landmark_lite/fc4 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element PullQEl_hw_read0hand_landmark_lite/fc4 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.388] [3168] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0hand_landmark_lite/fc4 is not running anymore, exiting..
+[2026-03-04 21:54:37.388] [3145] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0hand_landmark_lite/fc4 has 0 frames in his Queue on destruction
+[2026-03-04 21:54:37.389] [3145] [HailoRT] [info] [core_op.cpp:186] [deactivate] Deactivating took 0.005944 ms
+[2026-03-04 21:54:37.389] [3145] [HailoRT] [info] [core_op.cpp:186] [deactivate] Deactivating took 0.0295 ms
