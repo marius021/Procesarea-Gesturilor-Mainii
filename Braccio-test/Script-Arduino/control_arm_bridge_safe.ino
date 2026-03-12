@@ -21,7 +21,7 @@ const int M5_MAX = 180;
 const int M6_MIN = 10;
 const int M6_MAX = 73;
 
-const int NEUTRAL[6] = {90, 95, 95, 90, 90, 24};
+const int NEUTRAL[6] = {90, 95, 45, 90, 90, 24};
 
 char inputBuffer[64];
 size_t inputLength = 0;
