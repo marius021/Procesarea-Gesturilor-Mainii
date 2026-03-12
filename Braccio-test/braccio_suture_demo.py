@@ -53,12 +53,12 @@ SERVO_LIMITS = {
 }
 
 NEUTRAL_POSE = {
-    "base": 90,
-    "shoulder": 45,
-    "elbow": 65,
-    "wrist_vertical": 90,
-    "wrist_rotation": 90,
-    "gripper": 24,
+    "base": 96,
+    "shoulder": 83,
+    "elbow": 122,
+    "wrist_vertical": 93,
+    "wrist_rotation": 160,
+    "gripper": 10,
 }
 
 FIXED_MANUAL_POSE = {
