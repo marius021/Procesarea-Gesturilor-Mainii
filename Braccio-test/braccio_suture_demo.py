@@ -68,6 +68,8 @@ FIXED_MANUAL_POSE = {
     "wrist_rotation": NEUTRAL_POSE["wrist_rotation"],
 }
 
+LOCKED_JOINTS = dict(FIXED_MANUAL_POSE)
+
 ELBOW_TOP_SERVO = 138
 ELBOW_BOTTOM_SERVO = 82
 GRIPPER_OPEN_SERVO = 10
@@ -159,6 +161,13 @@ def sanitize_pose(pose: Dict[str, float]) -> Dict[str, int]:
         lo, hi = SERVO_LIMITS[joint]
         clean[joint] = int(round(clamp(pose[joint], lo, hi)))
     return clean
+
+
+def apply_locked_joints(pose: Dict[str, float]) -> Dict[str, float]:
+    locked = dict(pose)
+    for joint, fixed_value in LOCKED_JOINTS.items():
+        locked[joint] = fixed_value
+    return locked
 
 
 def lerp_pose(start: Dict[str, float], end: Dict[str, float], t: float) -> Dict[str, float]:
@@ -297,10 +306,12 @@ class StitchController:
         self.phase_name = "idle"
 
     def _segment_target(self, index: int) -> Dict[str, int]:
-        return sanitize_pose(offset_pose(self.anchor, self.sequence[index]["offsets"]))
+        return sanitize_pose(
+            apply_locked_joints(offset_pose(self.anchor, self.sequence[index]["offsets"]))
+        )
 
     def start(self, anchor_pose: Dict[str, float], now: float):
-        self.anchor = sanitize_pose(anchor_pose)
+        self.anchor = sanitize_pose(apply_locked_joints(anchor_pose))
         self.active = True
         self.segment_index = 0
         self.segment_started_at = now
@@ -438,7 +449,7 @@ def main():
                     phase = "hold"
                     desired_pose = dict(current_pose)
 
-            candidate = sanitize_pose(desired_pose)
+            candidate = sanitize_pose(apply_locked_joints(desired_pose))
             limited = sanitize_pose(rate_limit_pose(current_pose, candidate))
 
             should_send = False
