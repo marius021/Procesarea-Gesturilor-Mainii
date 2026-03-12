@@ -5,10 +5,7 @@ Reference controller for a Braccio suturing demo.
 This is for bench simulation and training only. It is not suitable for real
 medical use. The goal is to keep manual hand-follow for coarse positioning and
 trigger a repeatable stitch-like motion as a guarded state machine.
-
 """
-
-# ! IMPLEMENTARE DE TEST
 
 from __future__ import annotations
 
@@ -30,7 +27,7 @@ SEND_INTERVAL = 0.08
 HEARTBEAT_INTERVAL = 0.50
 HAND_LOST_TIMEOUT = 0.45
 
-TARGET_HAND_LABEL = "Right"
+TARGET_HAND_LABEL = "Left"
 FAILSAFE_MODE = "NEUTRAL"  # "HOLD" or "NEUTRAL"
 
 TRIGGER_PINCH_THRESHOLD = 0.26
@@ -56,13 +53,25 @@ SERVO_LIMITS = {
 }
 
 NEUTRAL_POSE = {
-    "base": 90,
-    "shoulder": 95,
-    "elbow": 95,
-    "wrist_vertical": 90,
-    "wrist_rotation": 90,
-    "gripper": 24,
+    "base": 96,
+    "shoulder": 83,
+    "elbow": 122,
+    "wrist_vertical": 93,
+    "wrist_rotation": 160,
+    "gripper": 10,
 }
+
+FIXED_MANUAL_POSE = {
+    "base": NEUTRAL_POSE["base"],
+    "shoulder": NEUTRAL_POSE["shoulder"],
+    "wrist_vertical": NEUTRAL_POSE["wrist_vertical"],
+    "wrist_rotation": NEUTRAL_POSE["wrist_rotation"],
+}
+
+ELBOW_TOP_SERVO = 138
+ELBOW_BOTTOM_SERVO = 82
+GRIPPER_OPEN_SERVO = 10
+GRIPPER_CLOSED_SERVO = 73
 
 FOLLOW_ALPHA = {
     "base": 0.18,
@@ -249,27 +258,29 @@ def compute_manual_target(landmarks, frame_w: int, frame_h: int):
     middle_mcp = pt(9)
     pinky_mcp = pt(17)
 
-    palm_x = (wrist[0] + index_mcp[0] + pinky_mcp[0]) / 3.0
     palm_y = (wrist[1] + index_mcp[1] + pinky_mcp[1]) / 3.0
 
     hand_ref = dist(wrist, middle_mcp) + 1e-6
     pinch_norm = dist(thumb_tip, index_tip) / hand_ref
-    hand_reach = hand_ref
-
-    hand_roll_deg = math.degrees(
-        math.atan2(pinky_mcp[1] - index_mcp[1], pinky_mcp[0] - index_mcp[0])
-    )
-    palm_pitch_deg = math.degrees(
-        math.atan2(middle_mcp[1] - wrist[1], middle_mcp[0] - wrist[0])
-    )
-
     target = {
-        "base": map_range(palm_x, 0, frame_w, 25, 155),
-        "shoulder": map_range(palm_y, frame_h * 0.15, frame_h * 0.90, 60, 130),
-        "elbow": map_range(hand_reach, 45, 235, 142, 72),
-        "wrist_vertical": map_range(palm_pitch_deg, -145, -35, 138, 55),
-        "wrist_rotation": map_range(hand_roll_deg, -115, 115, 20, 160),
-        "gripper": map_range(pinch_norm, 0.20, 0.95, 10, 73),
+        "base": FIXED_MANUAL_POSE["base"],
+        "shoulder": FIXED_MANUAL_POSE["shoulder"],
+        "elbow": map_range(
+            palm_y,
+            frame_h * 0.20,
+            frame_h * 0.90,
+            ELBOW_TOP_SERVO,
+            ELBOW_BOTTOM_SERVO,
+        ),
+        "wrist_vertical": FIXED_MANUAL_POSE["wrist_vertical"],
+        "wrist_rotation": FIXED_MANUAL_POSE["wrist_rotation"],
+        "gripper": map_range(
+            pinch_norm,
+            0.20,
+            0.95,
+            GRIPPER_CLOSED_SERVO,
+            GRIPPER_OPEN_SERVO,
+        ),
     }
     return target, pinch_norm
 
