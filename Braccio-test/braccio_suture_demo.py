@@ -300,7 +300,7 @@ def compute_manual_target(palm_y: float, pinch_norm: float, hand_reference_y: fl
             GRIPPER_OPEN_SERVO,
         ),
     }
-    return target, pinch_norm
+    return target
 
 
 class StitchController:
