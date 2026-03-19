@@ -55,7 +55,7 @@ SERVO_LIMITS = {
 NEUTRAL_POSE = {
     "base": 96,
     "shoulder": 83,
-    "elbow": 122,
+    "elbow": 65,
     "wrist_vertical": 93,
     "wrist_rotation": 160,
     "gripper": 10,
@@ -71,7 +71,8 @@ FIXED_MANUAL_POSE = {
 LOCKED_JOINTS = dict(FIXED_MANUAL_POSE)
 
 ELBOW_IDLE_SERVO = NEUTRAL_POSE["elbow"]
-ELBOW_LOWER_SERVO = 82
+ELBOW_DROP_DELTA = 25
+ELBOW_LOWER_SERVO = max(SERVO_LIMITS["elbow"][0], ELBOW_IDLE_SERVO - ELBOW_DROP_DELTA)
 HAND_DROP_DEADBAND_RATIO = 0.04
 HAND_FULL_DROP_RATIO = 0.32
 GRIPPER_OPEN_SERVO = 10
