@@ -1,0 +1,60 @@
+{
+  "geometry": {
+    "base_height_mm": 70.0,
+    "shoulder_radius_mm": 0.0,
+    "upper_arm_mm": 125.0,
+    "forearm_mm": 125.0,
+    "tool_tip_offset_mm": 110.0
+  },
+  "servo": {
+    "base": {
+      "zero_deg": 90.0,
+      "sign": 1.0
+    },
+    "shoulder": {
+      "zero_deg": 90.0,
+      "sign": -1.0
+    },
+    "elbow": {
+      "zero_deg": 90.0,
+      "sign": -1.0
+    },
+    "wrist_vertical": {
+      "zero_deg": 90.0,
+      "sign": 1.0
+    },
+    "wrist_rotation": {
+      "zero_deg": 90.0,
+      "sign": 1.0
+    }
+  },
+  "neutral_pose": {
+    "base": 90.0,
+    "shoulder": 95.0,
+    "elbow": 95.0,
+    "wrist_vertical": 90.0,
+    "wrist_rotation": 90.0,
+    "gripper": 24.0
+  },
+  "operation_zone": {
+    "x_min_mm": 140.0,
+    "x_max_mm": 220.0,
+    "y_min_mm": -45.0,
+    "y_max_mm": 45.0,
+    "surface_z_mm": 15.0,
+    "hover_height_mm": 45.0,
+    "entry_depth_mm": 8.0,
+    "step_right_mm": 20.0
+  },
+  "tool": {
+    "default_pitch_deg": -70.0,
+    "default_roll_deg": 0.0
+  },
+  "gripper": {
+    "open_deg": 26.0,
+    "closed_deg": 18.0
+  },
+  "ik": {
+    "elbow_up": false
+  }
+}

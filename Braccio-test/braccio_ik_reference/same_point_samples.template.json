@@ -1,0 +1,32 @@
+[
+  {
+    "pose": {
+      "base": 90.0,
+      "shoulder": 100.0,
+      "elbow": 90.0,
+      "wrist_vertical": 88.0,
+      "wrist_rotation": 90.0,
+      "gripper": 20.0
+    }
+  },
+  {
+    "pose": {
+      "base": 98.0,
+      "shoulder": 93.0,
+      "elbow": 101.0,
+      "wrist_vertical": 81.0,
+      "wrist_rotation": 90.0,
+      "gripper": 20.0
+    }
+  },
+  {
+    "pose": {
+      "base": 84.0,
+      "shoulder": 108.0,
+      "elbow": 82.0,
+      "wrist_vertical": 94.0,
+      "wrist_rotation": 90.0,
+      "gripper": 20.0
+    }
+  }
+]
