@@ -70,10 +70,8 @@ FIXED_MANUAL_POSE = {
 
 LOCKED_JOINTS = dict(FIXED_MANUAL_POSE)
 
-ELBOW_IDLE_SERVO = NEUTRAL_POSE["elbow"]
-ELBOW_LOWER_SERVO = 82
-ELBOW_DROP_START_Y_RATIO = 0.45
-ELBOW_DROP_END_Y_RATIO = 0.92
+ELBOW_TOP_SERVO = 138
+ELBOW_BOTTOM_SERVO = 82
 GRIPPER_OPEN_SERVO = 10
 GRIPPER_CLOSED_SERVO = 73
 
@@ -278,10 +276,10 @@ def compute_manual_target(landmarks, frame_w: int, frame_h: int):
         "shoulder": FIXED_MANUAL_POSE["shoulder"],
         "elbow": map_range(
             palm_y,
-            frame_h * ELBOW_DROP_START_Y_RATIO,
-            frame_h * ELBOW_DROP_END_Y_RATIO,
-            ELBOW_IDLE_SERVO,
-            ELBOW_LOWER_SERVO,
+            frame_h * 0.20,
+            frame_h * 0.90,
+            ELBOW_TOP_SERVO,
+            ELBOW_BOTTOM_SERVO,
         ),
         "wrist_vertical": FIXED_MANUAL_POSE["wrist_vertical"],
         "wrist_rotation": FIXED_MANUAL_POSE["wrist_rotation"],
