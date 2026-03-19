@@ -70,8 +70,10 @@ FIXED_MANUAL_POSE = {
 
 LOCKED_JOINTS = dict(FIXED_MANUAL_POSE)
 
-ELBOW_TOP_SERVO = 138
-ELBOW_BOTTOM_SERVO = 82
+ELBOW_IDLE_SERVO = NEUTRAL_POSE["elbow"]
+ELBOW_LOWER_SERVO = 82
+HAND_DROP_DEADBAND_RATIO = 0.04
+HAND_FULL_DROP_RATIO = 0.32
 GRIPPER_OPEN_SERVO = 10
 GRIPPER_CLOSED_SERVO = 73
 
@@ -256,7 +258,7 @@ def select_target_hand(results, label_wanted: str):
     return None, None, None
 
 
-def compute_manual_target(landmarks, frame_w: int, frame_h: int):
+def compute_hand_features(landmarks, frame_w: int, frame_h: int):
     def pt(index: int) -> Tuple[float, float]:
         return (landmarks[index].x * frame_w, landmarks[index].y * frame_h)
 
@@ -271,15 +273,22 @@ def compute_manual_target(landmarks, frame_w: int, frame_h: int):
 
     hand_ref = dist(wrist, middle_mcp) + 1e-6
     pinch_norm = dist(thumb_tip, index_tip) / hand_ref
+    return palm_y, pinch_norm
+
+
+def compute_manual_target(palm_y: float, pinch_norm: float, hand_reference_y: float, frame_h: int):
+    down_deadband_px = frame_h * HAND_DROP_DEADBAND_RATIO
+    full_drop_px = frame_h * HAND_FULL_DROP_RATIO
+    downward_motion_px = max(0.0, palm_y - hand_reference_y - down_deadband_px)
     target = {
         "base": FIXED_MANUAL_POSE["base"],
         "shoulder": FIXED_MANUAL_POSE["shoulder"],
         "elbow": map_range(
-            palm_y,
-            frame_h * 0.20,
-            frame_h * 0.90,
-            ELBOW_TOP_SERVO,
-            ELBOW_BOTTOM_SERVO,
+            downward_motion_px,
+            0.0,
+            full_drop_px,
+            ELBOW_IDLE_SERVO,
+            ELBOW_LOWER_SERVO,
         ),
         "wrist_vertical": FIXED_MANUAL_POSE["wrist_vertical"],
         "wrist_rotation": FIXED_MANUAL_POSE["wrist_rotation"],
@@ -375,11 +384,12 @@ def main():
     last_send_time = 0.0
     last_heartbeat_time = 0.0
     last_hand_seen_time = time.time()
+    hand_reference_y: Optional[float] = None
     trigger_started_at: Optional[float] = None
     trigger_armed = True
     stitch = StitchController(STITCH_SEQUENCE)
 
-    print("[INFO] Keys: ESC quit | S start stitch")
+    print("[INFO] Keys: ESC quit | S start stitch | R recalibrate hand height")
 
     try:
         while True:
@@ -406,8 +416,11 @@ def main():
 
             if hand_detected:
                 last_hand_seen_time = now
-                manual_target, pinch_norm = compute_manual_target(
-                    selected_landmarks, frame_w, frame_h
+                palm_y, pinch_norm = compute_hand_features(selected_landmarks, frame_w, frame_h)
+                if hand_reference_y is None:
+                    hand_reference_y = palm_y
+                manual_target = compute_manual_target(
+                    palm_y, pinch_norm, hand_reference_y, frame_h
                 )
                 smooth_pose(smoothed_follow, manual_target)
                 mp_draw.draw_landmarks(frame, selected_hand, mp_hands.HAND_CONNECTIONS)
@@ -426,6 +439,7 @@ def main():
                 phase = "manual"
             else:
                 trigger_started_at = None
+                hand_reference_y = None
 
             if stitch.active and (now - last_hand_seen_time) > HAND_LOST_TIMEOUT:
                 stitch.abort()
@@ -467,6 +481,7 @@ def main():
 
             pinch_text = "---" if pinch_norm is None else f"{pinch_norm:.2f}"
             ack_text = ack if ack is not None else "-"
+            ref_text = "---" if hand_reference_y is None else f"{hand_reference_y:.0f}"
             cv2.putText(
                 frame,
                 f"Mode: {mode} | Phase: {phase} | Hand: {detected_label or 'none'}",
@@ -489,7 +504,7 @@ def main():
             )
             cv2.putText(
                 frame,
-                f"Pinch: {pinch_text} | ACK: {ack_text}",
+                f"Pinch: {pinch_text} | RefY: {ref_text} | ACK: {ack_text}",
                 (10, 79),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
@@ -498,7 +513,7 @@ def main():
             )
             cv2.putText(
                 frame,
-                "Pinch and hold to start stitch, release to re-arm, S for manual start",
+                "Hand starts at reference height. Move hand down to lower elbow. R resets reference.",
                 (10, frame_h - 15),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.48,
@@ -510,6 +525,8 @@ def main():
             key = cv2.waitKey(1) & 0xFF
             if key == 27:
                 break
+            if key in (ord("r"), ord("R")) and hand_detected:
+                hand_reference_y = palm_y
             if key in (ord("s"), ord("S")) and not stitch.active:
                 stitch.start(current_pose, time.time())
 
