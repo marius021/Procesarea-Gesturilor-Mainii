@@ -52,7 +52,7 @@ NEUTRAL_POSE = {
     "shoulder": 83,
     "elbow": 65,
     "wrist_vertical": 93,
-    "wrist_rotation": 160,
+    "wrist_rotation": 90,
     "gripper": 15,
 }
 
@@ -66,7 +66,7 @@ FIXED_JOINTS = {
 HAND_ACTIVE_TOP_RATIO = 0.18
 HAND_ACTIVE_BOTTOM_RATIO = 0.88
 ELBOW_UP_SERVO = 110
-ELBOW_DOWN_SERVO = 40
+ELBOW_DOWN_SERVO = 25
 
 FOLLOW_ALPHA = {
     "base": 0.18,
@@ -140,9 +140,10 @@ def pose_changed(a: Dict[str, int], b: Dict[str, int], threshold: int = 1) -> bo
 
 
 def build_packet(pose: Dict[str, int]) -> str:
+    # The Braccio Arduino sketch expects wrist rotation before wrist vertical.
     return (
         f"CMD,{pose['base']},{pose['shoulder']},{pose['elbow']},"
-        f"{pose['wrist_vertical']},{pose['wrist_rotation']},{pose['gripper']}\n"
+        f"{pose['wrist_rotation']},{pose['wrist_vertical']},{pose['gripper']}\n"
     )
 
 
