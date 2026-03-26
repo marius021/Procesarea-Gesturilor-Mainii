@@ -49,7 +49,7 @@ SERVO_LIMITS = {
 
 NEUTRAL_POSE = {
     "base": 96,
-    "shoulder": 90,
+    "shoulder": 45,
     "elbow": 65,
     "wrist_vertical": 93,
     "wrist_rotation": 90,
