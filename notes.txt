@@ -1,0 +1,5 @@
+-- braccio_suture_demo_test.py = script functional, elbow fixat
+-- In ik_reference am incercat o calibrare manuala
+-- In demo hailo part 1 am incercat sa facem o simulare a gesturilor fara braccio, doar webcam
+-- IN Script-Arduino avem codurile C++ pe care le-am testat
+-- In python_scripts_Emil avem scripturi de test de la Emil
