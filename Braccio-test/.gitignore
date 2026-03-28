@@ -2,4 +2,5 @@
 .venv/
 .vscode/
 __pycache__/
-Degirum/
+Degirum/venv_hailo_rpi_examples/
+Degirum/__pycache__/

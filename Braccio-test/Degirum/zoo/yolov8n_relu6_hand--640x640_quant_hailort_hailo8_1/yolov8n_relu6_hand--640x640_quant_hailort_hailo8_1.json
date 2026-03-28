@@ -1,0 +1,32 @@
+{
+    "ConfigVersion": 11,
+    "Checksum": "45a4c8ebc5f5760c38a1080ffad60900ff26f5fda010c79e6255776c85992012",
+    "DEVICE": [
+        {
+            "DeviceType": "HAILO8",
+            "RuntimeAgent": "HAILORT",
+            "SupportedDeviceTypes": "HAILORT/HAILO8"
+        }
+    ],
+    "PRE_PROCESS": [
+        {
+            "InputN": 1,
+            "InputH": 640,
+            "InputW": 640,
+            "InputC": 3,
+            "InputQuantEn": true
+        }
+    ],
+    "MODEL_PARAMETERS": [
+        {
+            "ModelPath": "yolov8n_relu6_hand--640x640_quant_hailort_hailo8_1.hef"
+        }
+    ],
+    "POST_PROCESS": [
+        {
+            "OutputPostprocessType": "DetectionYoloHailo",
+            "OutputNumClasses": 1,
+            "LabelsPath": "labels_yolov8n_relu6_hand.json"
+        }
+    ]
+}

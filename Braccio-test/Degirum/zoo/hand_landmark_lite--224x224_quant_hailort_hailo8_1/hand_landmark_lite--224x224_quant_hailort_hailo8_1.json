@@ -1,0 +1,38 @@
+{
+    "ConfigVersion": 3,
+    "MODEL_PARAMETERS": [
+        {
+            "ModelPath": "hand_landmark_lite--224x224_quant_hailort_hailo8_1.hef"
+        }
+    ],
+    "PRE_PROCESS": [
+        {
+            "InputN": 1,
+            "InputH": 224,
+            "InputW": 224,
+            "InputC": 3,
+            "InputImgFmt": "JPEG",
+            "InputImgNormEn": false,
+            "InputQuantEn": true
+        }
+    ],
+    "POST_PROCESS": [
+        {
+            "PostProcessorInputs": [
+                3,
+                2,
+                0,
+                1
+            ],
+            "OutputPostprocessType": "HandDetection"
+        }
+    ],
+    "DEVICE": [
+        {
+            "DeviceType": "HAILO8",
+            "RuntimeAgent": "HAILORT",
+            "SupportedDeviceTypes": "HAILORT/HAILO8"
+        }
+    ],
+    "Checksum": "e71e8acbfe5e2a8f299b644240ec3fe10f063ff3cd6115e091e27c6a945d4023"
+}
