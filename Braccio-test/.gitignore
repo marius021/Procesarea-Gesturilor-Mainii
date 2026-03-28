@@ -1,0 +1,5 @@
+.codex
+.venv/
+.vscode/
+__pycache__/
+Degirum/
