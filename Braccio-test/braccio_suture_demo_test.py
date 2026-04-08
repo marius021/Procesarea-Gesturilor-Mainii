@@ -171,6 +171,14 @@ def angle_3pts(a: Tuple[float, float], b: Tuple[float, float], c: Tuple[float, f
     return math.degrees(math.acos(cosine))
 
 
+def thumb_pinky_mcp_angle(
+    thumb_tip: Tuple[float, float],
+    wrist: Tuple[float, float],
+    pinky_mcp: Tuple[float, float],
+) -> float:
+    return angle_3pts(thumb_tip, wrist, pinky_mcp)
+
+
 def map_fingers_to_m6(finger_angle: float) -> int:
     finger_angle = clamp(finger_angle, 15.0, 53.0)
     norm = (finger_angle - 15.0) / (53.0 - 15.0)
@@ -202,12 +210,11 @@ def compute_hand_features(landmarks, frame_w: int, frame_h: int) -> Tuple[float,
 
     wrist = pt(0)
     thumb_tip = pt(4)
-    index_tip = pt(8)
     index_mcp = pt(5)
     pinky_mcp = pt(17)
 
     palm_y = (wrist[1] + index_mcp[1] + pinky_mcp[1]) / 3.0
-    finger_angle = angle_3pts(thumb_tip, wrist, index_tip)
+    finger_angle = thumb_pinky_mcp_angle(thumb_tip, wrist, pinky_mcp)
     return palm_y, finger_angle
 
 
@@ -318,6 +325,11 @@ def main():
                 current_pose = dict(limited)
                 last_send_time = now
                 last_heartbeat_time = now
+                if finger_angle is not None:
+                    print(
+                        f"[ROLLING] finger_angle={finger_angle:.1f} "
+                        f"gripper={current_pose['gripper']} ack={ack or '-'}"
+                    )
 
             ack_text = ack if ack is not None else "-"
             palm_text = "---" if palm_y is None else f"{palm_y:.0f}"
