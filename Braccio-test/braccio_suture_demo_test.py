@@ -140,10 +140,10 @@ def pose_changed(a: Dict[str, int], b: Dict[str, int], threshold: int = 1) -> bo
 
 
 def build_packet(pose: Dict[str, int]) -> str:
-    # The Braccio Arduino sketch expects wrist rotation before wrist vertical.
+    # The Arduino bridge expects M4 then M5: wrist vertical before wrist rotation.
     return (
         f"CMD,{pose['base']},{pose['shoulder']},{pose['elbow']},"
-        f"{pose['wrist_rotation']},{pose['wrist_vertical']},{pose['gripper']}\n"
+        f"{pose['wrist_vertical']},{pose['wrist_rotation']},{pose['gripper']}\n"
     )
 
 
