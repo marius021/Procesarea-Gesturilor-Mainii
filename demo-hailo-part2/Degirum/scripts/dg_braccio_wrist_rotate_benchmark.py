@@ -65,6 +65,14 @@ FRAME_FIELDNAMES = [
     "ack",
 ]
 
+HAND_CONNECTIONS = (
+    (0, 1), (1, 2), (2, 3), (3, 4),
+    (0, 5), (5, 6), (6, 7), (7, 8),
+    (5, 9), (9, 10), (10, 11), (11, 12),
+    (9, 13), (13, 14), (14, 15), (15, 16),
+    (13, 17), (0, 17), (17, 18), (18, 19), (19, 20),
+)
+
 SUMMARY_FIELDNAMES = [
     "run_id",
     "run_label",
@@ -277,6 +285,22 @@ def _compute_pose_target(
     }
 
 
+def _draw_hand_landmarks(frame, landmarks, frame_w: int, frame_h: int) -> None:
+    points = []
+    for landmark in landmarks:
+        x = int(round(landmark.x * frame_w))
+        y = int(round(landmark.y * frame_h))
+        points.append((x, y))
+
+    for start_idx, end_idx in HAND_CONNECTIONS:
+        cv2.line(frame, points[start_idx], points[end_idx], (255, 200, 0), 2)
+
+    for idx, (x, y) in enumerate(points):
+        radius = 5 if idx in {0, 4, 8, 12, 16, 20} else 3
+        cv2.circle(frame, (x, y), radius, (0, 255, 255), -1)
+        cv2.circle(frame, (x, y), radius + 1, (20, 20, 20), 1)
+
+
 def _percentile(values, pct: float) -> float:
     if not values:
         return 0.0
@@ -365,7 +389,7 @@ def _print_summary(summary_row: dict) -> None:
 
 def main():
     default_wrist_home = cfg.NEUTRAL_POSE["wrist_rotation"]
-    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home + 90.0)
+    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home - 90.0)
     default_gripper_fixed = float(cfg.SERVO_LIMITS["gripper"][1])
 
     ap = argparse.ArgumentParser()
@@ -421,14 +445,14 @@ def main():
     ap.add_argument(
         "--max-frames",
         type=int,
-        default=300,
-        help="Number of measured frames to collect after warm-up. Use 0 to run until ESC.",
+        default=0,
+        help="Number of measured frames to collect after warm-up. Default 0 means frame count will not stop the run.",
     )
     ap.add_argument(
         "--max-seconds",
         type=float,
-        default=0.0,
-        help="Maximum measured duration in seconds after warm-up. Use 0 for no limit.",
+        default=25.0,
+        help="Maximum measured duration in seconds after warm-up. Default is 25 seconds; use 0 for no limit.",
     )
     ap.add_argument(
         "--dry-run-serial",
@@ -543,6 +567,7 @@ def main():
             palm_y = None
             hand_detected = False
             landmarks_found = False
+            display_landmarks = None
             wrist_target = float(wrist_cycle_target)
             wrist_transition = ""
             chosen_score = 0.0
@@ -601,6 +626,7 @@ def main():
                         frame_w=frame_w,
                         frame_h=frame_h,
                     )
+                    display_landmarks = norm_landmarks
 
                     palm_y = _compute_palm_y(
                         norm_landmarks,
@@ -640,6 +666,8 @@ def main():
 
                 if args.show:
                     cv2.rectangle(frame, (x0, y0), (x1, y1), (0, 255, 0), 2)
+                    if display_landmarks is not None:
+                        _draw_hand_landmarks(frame, display_landmarks, frame_w, frame_h)
             else:
                 dt = time.time() - last_hand_seen
                 if dt > cfg.HAND_LOST_TIMEOUT:
@@ -663,6 +691,8 @@ def main():
             if now - last_send >= cfg.SEND_INTERVAL and cfg.pose_changed(limited, current_pose):
                 should_send = True
             if now - last_heartbeat >= cfg.HEARTBEAT_INTERVAL:
+                should_send = True
+            if wrist_transition in {"BOTTOM_ROTATED", "TOP_HOME"}:
                 should_send = True
 
             control_time_ms = (time.perf_counter() - control_start_perf) * 1000.0

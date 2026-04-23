@@ -261,14 +261,14 @@ def _print_summary(summary_row: dict) -> None:
 
 def main():
     default_wrist_home = cfg.NEUTRAL_POSE["wrist_rotation"]
-    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home + 90.0)
+    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home - 90.0)
     default_gripper_fixed = float(cfg.SERVO_LIMITS["gripper"][1])
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--camera", default="/dev/video0")
     ap.add_argument(
         "--run-label",
-        default="mp_wrist_rotate_no_hailo",
+        default="mp_wrist_rotate_cpu",
         help="Short label stored in the CSV files for this run.",
     )
     ap.add_argument(
@@ -290,14 +290,14 @@ def main():
     ap.add_argument(
         "--max-frames",
         type=int,
-        default=300,
-        help="Number of measured frames to collect after warm-up. Use 0 to run until ESC.",
+        default=0,
+        help="Number of measured frames to collect after warm-up. Default 0 means frame count will not stop the run.",
     )
     ap.add_argument(
         "--max-seconds",
         type=float,
-        default=0.0,
-        help="Maximum measured duration in seconds after warm-up. Use 0 for no limit.",
+        default=25.0,
+        help="Maximum measured duration in seconds after warm-up. Default is 25 seconds; use 0 for no limit.",
     )
     ap.add_argument(
         "--dry-run-serial",
@@ -531,6 +531,8 @@ def main():
             if now - last_send >= cfg.SEND_INTERVAL and cfg.pose_changed(limited, current_pose):
                 should_send = True
             if now - last_heartbeat >= cfg.HEARTBEAT_INTERVAL:
+                should_send = True
+            if wrist_transition in {"BOTTOM_ROTATED", "TOP_HOME"}:
                 should_send = True
 
             control_time_ms = (time.perf_counter() - control_start_perf) * 1000.0

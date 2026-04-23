@@ -182,7 +182,7 @@ def _compute_pose_target(
 
 def main():
     default_wrist_home = cfg.NEUTRAL_POSE["wrist_rotation"]
-    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home + 90.0)
+    default_wrist_rotated = _clamp_wrist_rotation(default_wrist_home - 90.0)
     default_gripper_fixed = float(cfg.SERVO_LIMITS["gripper"][1])
 
     ap = argparse.ArgumentParser()
@@ -385,6 +385,8 @@ def main():
             if now - last_send >= cfg.SEND_INTERVAL and cfg.pose_changed(limited, current_pose):
                 should_send = True
             if now - last_heartbeat >= cfg.HEARTBEAT_INTERVAL:
+                should_send = True
+            if wrist_transition in {"BOTTOM_ROTATED", "TOP_HOME"}:
                 should_send = True
 
             if should_send:
