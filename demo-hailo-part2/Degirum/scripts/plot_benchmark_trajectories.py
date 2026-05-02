@@ -37,21 +37,79 @@ except ModuleNotFoundError as exc:
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+
+PALETTE = {
+    "backend": {
+        "hailo": "#1f77b4",
+        "cpu": "#ff7f0e",
+    },
+    "joint": {
+        "elbow_target": "#d62728",
+        "elbow_current": "#1f77b4",
+        "wrist_target": "#2ca02c",
+        "wrist_current": "#ff7f0e",
+    },
+    "hand": {
+        "palm_track": "#4d4d4d",
+    },
+    "tracking": {
+        "elbow_error": "#1f77b4",
+        "wrist_error": "#ff7f0e",
+        "pose_sent": "#222222",
+    },
+    "timing": {
+        "frame_total": "#6a3d9a",
+        "serial_write": "#8c564b",
+    },
+    "phase": {
+        "TOP_HOME": "#dceefa",
+        "BOTTOM_ROTATED": "#fff2cc",
+    },
+    "neutral": {
+        "white": "#ffffff",
+        "edge": "#333333",
+    },
+}
 
 BACKEND_STYLE = {
     "hailo": {
         "label": "Hailo/DeGirum",
-        "color": "#1f77b4",
+        "color": PALETTE["backend"]["hailo"],
     },
     "cpu": {
         "label": "CPU/MediaPipe",
-        "color": "#ff7f0e",
+        "color": PALETTE["backend"]["cpu"],
+    },
+}
+BACKEND_KEYS = ("hailo", "cpu")
+BACKEND_ORDER = {key: idx for idx, key in enumerate(BACKEND_KEYS)}
+
+RATE_STYLE = {
+    "hand_detect_rate_pct": {
+        "label": "Hand detected (%)",
+        "hatch": "///",
+    },
+    "landmarks_rate_pct": {
+        "label": "Landmarks found (%)",
+        "hatch": "\\\\\\",
+    },
+    "pose_send_rate_pct": {
+        "label": "Pose sent (%)",
+        "hatch": "...",
     },
 }
 
-PHASE_BG = {
-    "TOP_HOME": "#dceefa",
-    "BOTTOM_ROTATED": "#fff2cc",
+PHASE_STYLE = {
+    "TOP_HOME": {
+        "label": "Phase window: top/home",
+        "color": PALETTE["phase"]["TOP_HOME"],
+    },
+    "BOTTOM_ROTATED": {
+        "label": "Phase window: bottom/rotated",
+        "color": PALETTE["phase"]["BOTTOM_ROTATED"],
+    },
 }
 
 
@@ -183,10 +241,10 @@ def _phase_segments(rows: list[dict]) -> list[tuple[str, float, float]]:
 
 def _apply_phase_background(ax, rows: list[dict]) -> None:
     for phase, start_time, end_time in _phase_segments(rows):
-        bg = PHASE_BG.get(phase)
-        if bg is None:
+        style = PHASE_STYLE.get(phase)
+        if style is None:
             continue
-        ax.axvspan(start_time, end_time, facecolor=bg, alpha=0.35, linewidth=0)
+        ax.axvspan(start_time, end_time, facecolor=style["color"], alpha=0.35, linewidth=0)
 
 
 def _event_times(rows: list[dict], key: str) -> list[float]:
@@ -208,6 +266,32 @@ def _normalized_time(rows: list[dict]) -> list[float]:
     if max_time <= 1e-9:
         return [0.0 for _ in rows]
     return [row["time_s"] / max_time for row in rows]
+
+
+def _backend_legend_handles() -> list[Patch]:
+    return [
+        Patch(facecolor=BACKEND_STYLE[key]["color"], label=BACKEND_STYLE[key]["label"])
+        for key in BACKEND_KEYS
+    ]
+
+
+def _rate_legend_handles() -> list[Patch]:
+    return [
+        Patch(
+            facecolor=PALETTE["neutral"]["white"],
+            edgecolor=PALETTE["neutral"]["edge"],
+            hatch=style["hatch"],
+            label=style["label"],
+        )
+        for style in RATE_STYLE.values()
+    ]
+
+
+def _phase_legend_handles() -> list[Patch]:
+    return [
+        Patch(facecolor=style["color"], alpha=0.35, label=style["label"])
+        for style in PHASE_STYLE.values()
+    ]
 
 
 def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path) -> Path:
@@ -242,36 +326,43 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
     ax.plot(
         times,
         [row["candidate_elbow"] for row in rows],
-        color="#d62728",
+        color=PALETTE["joint"]["elbow_target"],
         linestyle="--",
         linewidth=1.8,
-        label="Elbow target",
+        label="Elbow target angle",
     )
     ax.plot(
         times,
         [row["current_elbow"] for row in rows],
-        color="#1f77b4",
+        color=PALETTE["joint"]["elbow_current"],
         linewidth=2.1,
-        label="Elbow current",
+        label="Elbow measured angle",
     )
     ax.plot(
         times,
         [row["candidate_wrist_rotation"] for row in rows],
-        color="#2ca02c",
+        color=PALETTE["joint"]["wrist_target"],
         linestyle="--",
         linewidth=1.8,
-        label="Wrist target",
+        label="Wrist target angle",
     )
     ax.plot(
         times,
         [row["current_wrist_rotation"] for row in rows],
-        color="#ff7f0e",
+        color=PALETTE["joint"]["wrist_current"],
         linewidth=2.1,
-        label="Wrist current",
+        label="Wrist measured angle",
     )
     ax.set_ylabel("Servo angle (deg)")
     ax.set_title("Joint command trajectories")
-    ax.legend(loc="upper right", ncol=2)
+    joint_handles, joint_labels = ax.get_legend_handles_labels()
+    phase_handles = _phase_legend_handles()
+    ax.legend(
+        joint_handles + phase_handles,
+        joint_labels + [handle.get_label() for handle in phase_handles],
+        loc="upper right",
+        ncol=2,
+    )
 
     ax = axes[1]
     _apply_phase_background(ax, rows)
@@ -279,9 +370,9 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
         ax.plot(
             palm_times,
             palm_values,
-            color="#4d4d4d",
+            color=PALETTE["hand"]["palm_track"],
             linewidth=2.0,
-            label="Palm Y",
+            label="Palm Y hand track",
         )
     for transition_time, transition_name in _transition_times(rows):
         ax.axvline(
@@ -305,23 +396,49 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
         ax.invert_yaxis()
     ax.set_ylabel("Palm Y (px)")
     ax.set_title("Hand trajectory and wrist phase")
+    hand_handles: list = []
     if palm_times:
-        ax.legend(loc="upper right")
+        hand_handles.extend(ax.get_legend_handles_labels()[0])
+    hand_labels = ["Palm Y hand track"] if palm_times else []
+    hand_handles.append(
+        Line2D(
+            [0],
+            [0],
+            color=style["color"],
+            linestyle=":",
+            linewidth=1.4,
+            label=f"{summary.backend_label} phase transition",
+        )
+    )
+    hand_labels.append(f"{summary.backend_label} phase transition")
+    ax.legend(hand_handles, hand_labels, loc="upper right")
 
     ax = axes[2]
     _apply_phase_background(ax, rows)
-    ax.plot(times, elbow_error, color="#1f77b4", linewidth=1.9, label="|Elbow error|")
-    ax.plot(times, wrist_error, color="#ff7f0e", linewidth=1.9, label="|Wrist error|")
+    ax.plot(
+        times,
+        elbow_error,
+        color=PALETTE["tracking"]["elbow_error"],
+        linewidth=1.9,
+        label="Absolute elbow error",
+    )
+    ax.plot(
+        times,
+        wrist_error,
+        color=PALETTE["tracking"]["wrist_error"],
+        linewidth=1.9,
+        label="Absolute wrist error",
+    )
     send_times = _event_times(rows, "pose_sent")
     if send_times:
         ax.scatter(
             send_times,
             [0.0] * len(send_times),
-            color="#222222",
+            color=PALETTE["tracking"]["pose_sent"],
             marker="|",
             s=200,
             linewidths=1.2,
-            label="Pose sent",
+            label="Pose command sent",
             zorder=3,
         )
     ax.set_ylabel("Tracking error (deg)")
@@ -333,23 +450,23 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
     ax.plot(
         times,
         [row["total_frame_time_ms"] for row in rows],
-        color="#6a3d9a",
+        color=PALETTE["timing"]["frame_total"],
         linewidth=1.8,
-        label="Frame time",
+        label="Total frame time",
     )
     ax.plot(
         times,
         [row["inference_time_ms"] for row in rows],
         color=style["color"],
         linewidth=1.7,
-        label="Inference time",
+        label="Model inference time",
     )
     ax.plot(
         times,
         [row["serial_time_ms"] for row in rows],
-        color="#8c564b",
+        color=PALETTE["timing"]["serial_write"],
         linewidth=1.4,
-        label="Serial time",
+        label="Serial write time",
     )
     ax.set_ylabel("Time (ms)")
     ax.set_xlabel("Measurement time (s)")
@@ -376,7 +493,11 @@ def _plot_backend_overlay(
             continue
         norm_t = _normalized_time(rows)
         style = BACKEND_STYLE[summary.backend_key]
-        label = style["label"] if summary.backend_key not in legend_done else None
+        label = (
+            f"{style['label']} measured runs"
+            if summary.backend_key not in legend_done
+            else None
+        )
         axes[0].plot(
             norm_t,
             [row["current_elbow"] for row in rows],
@@ -413,7 +534,7 @@ def _plot_backend_overlay(
 
     for ax in axes:
         ax.set_xlim(0.0, 1.0)
-        ax.legend(loc="upper right")
+        ax.legend(loc="upper right", title="Backend (line color)")
 
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
@@ -426,7 +547,7 @@ def _plot_summary_metrics(summaries: list[SummaryRow], output_dir: Path) -> Path
     fig, axes = plt.subplots(2, 3, figsize=(15, 9), constrained_layout=True)
     fig.suptitle("Benchmark run metrics", fontsize=14, fontweight="bold")
 
-    ordered = sorted(summaries, key=lambda row: (row.backend_key, row.run_id))
+    ordered = sorted(summaries, key=lambda row: (BACKEND_ORDER[row.backend_key], row.run_id))
     labels = [_short_run_name(row.run_id) for row in ordered]
     colors = [BACKEND_STYLE[row.backend_key]["color"] for row in ordered]
     x = list(range(len(ordered)))
@@ -449,23 +570,30 @@ def _plot_summary_metrics(summaries: list[SummaryRow], output_dir: Path) -> Path
 
     rates_ax = axes[1][2]
     bar_width = 0.24
-    hand_rates = [row.hand_detect_rate_pct for row in ordered]
-    landmark_rates = [row.landmarks_rate_pct for row in ordered]
-    pose_rates = [row.pose_send_rate_pct for row in ordered]
-    rates_ax.bar([pos - bar_width for pos in x], hand_rates, width=bar_width, color="#1f77b4", label="Hand detect %")
-    rates_ax.bar(x, landmark_rates, width=bar_width, color="#2ca02c", label="Landmarks %")
-    rates_ax.bar([pos + bar_width for pos in x], pose_rates, width=bar_width, color="#ff7f0e", label="Pose sends %")
+    rate_offsets = (-bar_width, 0.0, bar_width)
+    for offset, (field_name, style) in zip(rate_offsets, RATE_STYLE.items()):
+        values = [getattr(row, field_name) for row in ordered]
+        rates_ax.bar(
+            [pos + offset for pos in x],
+            values,
+            width=bar_width,
+            color=colors,
+            alpha=0.85,
+            edgecolor=PALETTE["neutral"]["edge"],
+            linewidth=0.4,
+            hatch=style["hatch"],
+        )
     rates_ax.set_title("Measured-frame event rates")
     rates_ax.set_ylabel("Percent")
     rates_ax.set_xticks(x, labels, rotation=22, ha="right")
     rates_ax.set_ylim(0.0, 105.0)
-    rates_ax.legend(loc="upper right")
+    rates_ax.legend(handles=_rate_legend_handles(), loc="upper right", title="Bar hatch")
 
-    handles = [
-        plt.Line2D([0], [0], color=BACKEND_STYLE["hailo"]["color"], lw=6, label=BACKEND_STYLE["hailo"]["label"]),
-        plt.Line2D([0], [0], color=BACKEND_STYLE["cpu"]["color"], lw=6, label=BACKEND_STYLE["cpu"]["label"]),
-    ]
-    fig.legend(handles=handles, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 1.01))
+    flat_axes[0].legend(
+        handles=_backend_legend_handles(),
+        loc="lower left",
+        title="Backend (bar color)",
+    )
 
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
@@ -482,12 +610,12 @@ def _plot_backend_averages(summaries: list[SummaryRow], output_dir: Path) -> Pat
     for row in summaries:
         grouped[row.backend_key].append(row)
 
-    labels = [BACKEND_STYLE[key]["label"] for key in ("hailo", "cpu") if grouped[key]]
-    colors = [BACKEND_STYLE[key]["color"] for key in ("hailo", "cpu") if grouped[key]]
+    labels = [BACKEND_STYLE[key]["label"] for key in BACKEND_KEYS if grouped[key]]
+    colors = [BACKEND_STYLE[key]["color"] for key in BACKEND_KEYS if grouped[key]]
 
     def avg(field_name: str) -> list[float]:
         values = []
-        for key in ("hailo", "cpu"):
+        for key in BACKEND_KEYS:
             rows = grouped[key]
             if not rows:
                 continue
@@ -506,6 +634,12 @@ def _plot_backend_averages(summaries: list[SummaryRow], output_dir: Path) -> Pat
         ax.bar(labels, values, color=colors, alpha=0.88)
         ax.set_title(title)
         ax.set_ylabel(ylabel)
+
+    axes[0][0].legend(
+        handles=_backend_legend_handles(),
+        loc="lower left",
+        title="Backend (bar color)",
+    )
 
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
@@ -535,10 +669,9 @@ def build_plots(hailo_summary: Path, cpu_summary: Path, output_dir: Path) -> lis
     if not run_rows:
         raise SystemExit("No measured frame rows were available to plot.")
 
-    valid_summaries = [summary for summary, _ in run_rows]
     written_paths.append(_plot_backend_overlay(run_rows, output_dir))
-    written_paths.append(_plot_summary_metrics(valid_summaries, output_dir))
-    written_paths.append(_plot_backend_averages(valid_summaries, output_dir))
+    written_paths.append(_plot_summary_metrics(summaries, output_dir))
+    written_paths.append(_plot_backend_averages(summaries, output_dir))
     return written_paths
 
 
