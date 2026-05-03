@@ -112,6 +112,29 @@ PHASE_STYLE = {
     },
 }
 
+LEGEND_FONT_SIZE = 16
+LEGEND_TITLE_FONT_SIZE = 17
+FOCUS_LEGEND_FONT_SIZE = 19
+FOCUS_LEGEND_TITLE_FONT_SIZE = 20
+FIG_SUPTITLE_FONT_SIZE = 18
+AXIS_TITLE_FONT_SIZE = 16
+AXIS_LABEL_FONT_SIZE = 14
+TICK_LABEL_FONT_SIZE = 13
+ANNOTATION_FONT_SIZE = 12
+EXPORT_DPI = 220
+
+plt.rcParams.update(
+    {
+        "figure.titlesize": FIG_SUPTITLE_FONT_SIZE,
+        "axes.titlesize": AXIS_TITLE_FONT_SIZE,
+        "axes.labelsize": AXIS_LABEL_FONT_SIZE,
+        "xtick.labelsize": TICK_LABEL_FONT_SIZE,
+        "ytick.labelsize": TICK_LABEL_FONT_SIZE,
+        "legend.fontsize": LEGEND_FONT_SIZE,
+        "legend.title_fontsize": LEGEND_TITLE_FONT_SIZE,
+    }
+)
+
 
 @dataclass
 class SummaryRow:
@@ -317,7 +340,7 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
     )
     fig.suptitle(
         f"{summary.backend_label} trajectory: {summary.run_id}",
-        fontsize=14,
+        fontsize=FIG_SUPTITLE_FONT_SIZE,
         fontweight="bold",
     )
 
@@ -362,6 +385,7 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
         joint_labels + [handle.get_label() for handle in phase_handles],
         loc="upper right",
         ncol=2,
+        fontsize=LEGEND_FONT_SIZE,
     )
 
     ax = axes[1]
@@ -389,7 +413,7 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
             rotation=90,
             va="bottom",
             ha="right",
-            fontsize=8,
+            fontsize=ANNOTATION_FONT_SIZE,
             color=style["color"],
         )
     if palm_times:
@@ -411,7 +435,7 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
         )
     )
     hand_labels.append(f"{summary.backend_label} phase transition")
-    ax.legend(hand_handles, hand_labels, loc="upper right")
+    ax.legend(hand_handles, hand_labels, loc="upper right", fontsize=LEGEND_FONT_SIZE)
 
     ax = axes[2]
     _apply_phase_background(ax, rows)
@@ -443,7 +467,7 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
         )
     ax.set_ylabel("Tracking error (deg)")
     ax.set_title("Tracking error and command send events")
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper right", fontsize=LEGEND_FONT_SIZE)
 
     ax = axes[3]
     _apply_phase_background(ax, rows)
@@ -471,9 +495,119 @@ def _plot_run_trajectory(summary: SummaryRow, rows: list[dict], output_dir: Path
     ax.set_ylabel("Time (ms)")
     ax.set_xlabel("Measurement time (s)")
     ax.set_title("Per-frame timing trajectory")
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper right", fontsize=LEGEND_FONT_SIZE)
 
-    fig.savefig(output_path, dpi=180)
+    fig.savefig(output_path, dpi=EXPORT_DPI)
+    plt.close(fig)
+    return output_path
+
+
+def _plot_run_tracking_timing_focus(
+    summary: SummaryRow,
+    rows: list[dict],
+    output_dir: Path,
+) -> Path:
+    style = BACKEND_STYLE[summary.backend_key]
+    output_path = output_dir / f"{summary.run_id}_tracking_timing_focus.png"
+
+    times = [row["time_s"] for row in rows]
+    elbow_error = [abs(row["candidate_elbow"] - row["current_elbow"]) for row in rows]
+    wrist_error = [
+        abs(row["candidate_wrist_rotation"] - row["current_wrist_rotation"])
+        for row in rows
+    ]
+    send_times = _event_times(rows, "pose_sent")
+
+    plt.style.use("seaborn-v0_8-whitegrid")
+    fig, axes = plt.subplots(
+        2,
+        1,
+        figsize=(15, 15.5),
+        constrained_layout=True,
+    )
+    fig.suptitle(
+        f"{summary.backend_label} focus plots: {summary.run_id}",
+        fontsize=FIG_SUPTITLE_FONT_SIZE,
+        fontweight="bold",
+    )
+
+    ax = axes[0]
+    _apply_phase_background(ax, rows)
+    ax.plot(
+        times,
+        elbow_error,
+        color=PALETTE["tracking"]["elbow_error"],
+        linewidth=2.2,
+        label="Absolute elbow error",
+    )
+    ax.plot(
+        times,
+        wrist_error,
+        color=PALETTE["tracking"]["wrist_error"],
+        linewidth=2.2,
+        label="Absolute wrist error",
+    )
+    if send_times:
+        ax.scatter(
+            send_times,
+            [0.0] * len(send_times),
+            color=PALETTE["tracking"]["pose_sent"],
+            marker="|",
+            s=260,
+            linewidths=1.6,
+            label="Pose command sent",
+            zorder=3,
+        )
+    ax.set_ylabel("Tracking error (deg)")
+    ax.set_xlabel("Measurement time (s)")
+    ax.set_title("Tracking error and command send events")
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.22),
+        ncol=3,
+        fontsize=FOCUS_LEGEND_FONT_SIZE,
+        title="Path meaning",
+        title_fontsize=FOCUS_LEGEND_TITLE_FONT_SIZE,
+        frameon=True,
+    )
+
+    ax = axes[1]
+    _apply_phase_background(ax, rows)
+    ax.plot(
+        times,
+        [row["total_frame_time_ms"] for row in rows],
+        color=PALETTE["timing"]["frame_total"],
+        linewidth=2.1,
+        label="Total frame time",
+    )
+    ax.plot(
+        times,
+        [row["inference_time_ms"] for row in rows],
+        color=style["color"],
+        linewidth=2.0,
+        label="Model inference time",
+    )
+    ax.plot(
+        times,
+        [row["serial_time_ms"] for row in rows],
+        color=PALETTE["timing"]["serial_write"],
+        linewidth=1.9,
+        label="Serial write time",
+    )
+    ax.set_ylabel("Time (ms)")
+    ax.set_xlabel("Measurement time (s)")
+    ax.set_title("Per-frame timing trajectory")
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.22),
+        ncol=3,
+        fontsize=FOCUS_LEGEND_FONT_SIZE,
+        title="Path meaning",
+        title_fontsize=FOCUS_LEGEND_TITLE_FONT_SIZE,
+        frameon=True,
+    )
+
+    fig.savefig(output_path, dpi=EXPORT_DPI)
     plt.close(fig)
     return output_path
 
@@ -485,7 +619,11 @@ def _plot_backend_overlay(
     output_path = output_dir / "backend_trajectory_overlay.png"
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), constrained_layout=True)
-    fig.suptitle("Backend trajectory overlay across measured runs", fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "Backend trajectory overlay across measured runs",
+        fontsize=FIG_SUPTITLE_FONT_SIZE,
+        fontweight="bold",
+    )
 
     legend_done: set[str] = set()
     for summary, rows in run_rows:
@@ -534,9 +672,14 @@ def _plot_backend_overlay(
 
     for ax in axes:
         ax.set_xlim(0.0, 1.0)
-        ax.legend(loc="upper right", title="Backend (line color)")
+        ax.legend(
+            loc="upper right",
+            title="Backend (line color)",
+            fontsize=LEGEND_FONT_SIZE,
+            title_fontsize=LEGEND_TITLE_FONT_SIZE,
+        )
 
-    fig.savefig(output_path, dpi=180)
+    fig.savefig(output_path, dpi=EXPORT_DPI)
     plt.close(fig)
     return output_path
 
@@ -545,7 +688,7 @@ def _plot_summary_metrics(summaries: list[SummaryRow], output_dir: Path) -> Path
     output_path = output_dir / "backend_run_metrics.png"
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, axes = plt.subplots(2, 3, figsize=(15, 9), constrained_layout=True)
-    fig.suptitle("Benchmark run metrics", fontsize=14, fontweight="bold")
+    fig.suptitle("Benchmark run metrics", fontsize=FIG_SUPTITLE_FONT_SIZE, fontweight="bold")
 
     ordered = sorted(summaries, key=lambda row: (BACKEND_ORDER[row.backend_key], row.run_id))
     labels = [_short_run_name(row.run_id) for row in ordered]
@@ -587,15 +730,23 @@ def _plot_summary_metrics(summaries: list[SummaryRow], output_dir: Path) -> Path
     rates_ax.set_ylabel("Percent")
     rates_ax.set_xticks(x, labels, rotation=22, ha="right")
     rates_ax.set_ylim(0.0, 105.0)
-    rates_ax.legend(handles=_rate_legend_handles(), loc="upper right", title="Bar hatch")
+    rates_ax.legend(
+        handles=_rate_legend_handles(),
+        loc="upper right",
+        title="Bar hatch",
+        fontsize=LEGEND_FONT_SIZE,
+        title_fontsize=LEGEND_TITLE_FONT_SIZE,
+    )
 
     flat_axes[0].legend(
         handles=_backend_legend_handles(),
         loc="lower left",
         title="Backend (bar color)",
+        fontsize=LEGEND_FONT_SIZE,
+        title_fontsize=LEGEND_TITLE_FONT_SIZE,
     )
 
-    fig.savefig(output_path, dpi=180)
+    fig.savefig(output_path, dpi=EXPORT_DPI)
     plt.close(fig)
     return output_path
 
@@ -604,7 +755,7 @@ def _plot_backend_averages(summaries: list[SummaryRow], output_dir: Path) -> Pat
     output_path = output_dir / "backend_average_metrics.png"
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, axes = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
-    fig.suptitle("Backend averages", fontsize=14, fontweight="bold")
+    fig.suptitle("Backend averages", fontsize=FIG_SUPTITLE_FONT_SIZE, fontweight="bold")
 
     grouped: dict[str, list[SummaryRow]] = {"hailo": [], "cpu": []}
     for row in summaries:
@@ -639,9 +790,11 @@ def _plot_backend_averages(summaries: list[SummaryRow], output_dir: Path) -> Pat
         handles=_backend_legend_handles(),
         loc="lower left",
         title="Backend (bar color)",
+        fontsize=LEGEND_FONT_SIZE,
+        title_fontsize=LEGEND_TITLE_FONT_SIZE,
     )
 
-    fig.savefig(output_path, dpi=180)
+    fig.savefig(output_path, dpi=EXPORT_DPI)
     plt.close(fig)
     return output_path
 
@@ -665,6 +818,7 @@ def build_plots(hailo_summary: Path, cpu_summary: Path, output_dir: Path) -> lis
             continue
         run_rows.append((summary, rows))
         written_paths.append(_plot_run_trajectory(summary, rows, output_dir))
+        written_paths.append(_plot_run_tracking_timing_focus(summary, rows, output_dir))
 
     if not run_rows:
         raise SystemExit("No measured frame rows were available to plot.")
