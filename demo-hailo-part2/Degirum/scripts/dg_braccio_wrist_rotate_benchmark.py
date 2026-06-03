@@ -20,6 +20,9 @@ from types import SimpleNamespace
 from urllib.parse import unquote, urlparse
 
 import cv2
+import hmac
+import hashlib
+import psutil
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -32,6 +35,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import braccio_suture_demo_test as cfg
+
+SECRET_KEY = b"braccio-key-2026"
+
+def sign_command(cmd: str) -> str:
+    sig = hmac.new(SECRET_KEY, cmd.encode("ascii"), hashlib.sha256)
+    return cmd + "|" + sig.hexdigest()[:8]
 
 
 FRAME_FIELDNAMES = [
@@ -63,6 +72,7 @@ FRAME_FIELDNAMES = [
     "current_elbow",
     "current_wrist_rotation",
     "ack",
+    "cpu_percent",
 ]
 
 HAND_CONNECTIONS = (
@@ -119,6 +129,8 @@ SUMMARY_FIELDNAMES = [
     "inference_time_p95_ms",
     "pipeline_time_mean_ms",
     "pipeline_time_p95_ms",
+    "cpu_percent_mean",
+    "cpu_percent_p95",
     "frame_csv",
 ]
 
@@ -383,6 +395,8 @@ def _print_summary(summary_row: dict) -> None:
         f"  Hand detected frames: {summary_row['hand_detected_frames']} | "
         f"landmark frames: {summary_row['landmarks_frames']} | "
         f"pose sends: {summary_row['pose_sent_frames']}"
+        f"  CPU load mean / p95: {summary_row['cpu_percent_mean']:.1f}% / "
+        f"{summary_row['cpu_percent_p95']:.1f}%"
     )
     print(f"  Frame CSV: {summary_row['frame_csv']}")
 
@@ -543,10 +557,13 @@ def main():
     pipeline_times = []
     frame_times = []
     fps_values = []
+    cpu_values = []
 
     frame_file = frame_csv.open("w", newline="", encoding="utf-8")
     frame_writer = csv.DictWriter(frame_file, fieldnames=FRAME_FIELDNAMES)
     frame_writer.writeheader()
+    
+    psutil.cpu_percent(interval=None)  # prime baseline for per-frame deltas
 
     print("Running benchmark wrist rotation demo. ESC to quit.")
     print(f"Per-frame CSV: {frame_csv}")
@@ -783,6 +800,7 @@ def main():
             )
             total_frame_time_ms = (time.perf_counter() - frame_start_perf) * 1000.0
             fps = 1000.0 / max(total_frame_time_ms, 0.0001)
+            cpu_percent = psutil.cpu_percent(interval=None) /psutil.cpu_count()
 
             measured = total_frames > args.warmup_frames
             if measured and measurement_start_monotonic is None:
@@ -825,6 +843,7 @@ def main():
                     "current_elbow": current_pose["elbow"],
                     "current_wrist_rotation": current_pose["wrist_rotation"],
                     "ack": ack or "",
+                    "cpu_percent": f"{cpu_percent:.1f}",
                 }
             )
 
@@ -845,6 +864,7 @@ def main():
                 pipeline_times.append(pipeline_time_ms)
                 frame_times.append(total_frame_time_ms)
                 fps_values.append(fps)
+                cpu_values.append(cpu_percent)
                 if should_send:
                     pose_sent_frames += 1
                     serial_times_sent.append(serial_time_ms)
@@ -924,6 +944,8 @@ def main():
         "inference_time_p95_ms": round(_percentile(inference_times, 95.0), 6),
         "pipeline_time_mean_ms": round(_mean(pipeline_times), 6),
         "pipeline_time_p95_ms": round(_percentile(pipeline_times, 95.0), 6),
+        "cpu_percent_mean": round(_mean(cpu_values), 6),
+        "cpu_percent_p95": round(_percentile(cpu_values, 95.0), 6),
         "frame_csv": str(frame_csv),
     }
 
