@@ -9,8 +9,8 @@ import cv2
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[1]
-DEFAULT_ZOO_DIR = SCRIPT_DIR.parents[1] / "Degirum" / "zoo"
+PROJECT_ROOT = SCRIPT_DIR
+DEFAULT_ZOO_DIR = SCRIPT_DIR / "zoo"
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -23,7 +23,7 @@ def _import_degirum():
         import degirum as dg
     except ModuleNotFoundError as exc:
         raise SystemExit(
-            "Missing Python package 'degirum'. Activate Degirum/venv_hailo_rpi_examples first, "
+            "Missing Python package 'degirum'. Activate venv_hailo_rpi_examples first, "
             "or install degirum in the interpreter you are using."
         ) from exc
     return dg
@@ -189,7 +189,7 @@ def main():
     ap.add_argument(
         "--zoo",
         default=str(DEFAULT_ZOO_DIR),
-        help="Local DeGirum zoo folder or file:// URL. Defaults to Degirum/zoo in this repo.",
+        help="Local DeGirum zoo folder or file:// URL. Defaults to the zoo/ folder next to this script.",
     )
     ap.add_argument("--camera", default="/dev/video0")
     ap.add_argument("--detector", default="yolov8n_relu6_hand--640x640_quant_hailort_hailo8_1")

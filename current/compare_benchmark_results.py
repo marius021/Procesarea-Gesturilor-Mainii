@@ -3,7 +3,7 @@
 Build a markdown comparison table from the Hailo and CPU benchmark summary CSVs.
 
 The output is designed to be easy to read in the terminal or save as a report
-under benchmark_results/ after collecting new runs.
+under results/ after collecting new runs.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from statistics import mean
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_RESULTS_DIR = SCRIPT_DIR / "benchmark_results"
+DEFAULT_RESULTS_DIR = SCRIPT_DIR.parent / "results"
 DEFAULT_HAILO_SUMMARY = DEFAULT_RESULTS_DIR / "dg_wrist_rotate_summary.csv"
 DEFAULT_CPU_SUMMARY = DEFAULT_RESULTS_DIR / "mp_wrist_rotate_summary.csv"
 DEFAULT_OUTPUT_MD = DEFAULT_RESULTS_DIR / "benchmark_comparison.md"

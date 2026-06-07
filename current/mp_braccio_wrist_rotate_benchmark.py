@@ -22,8 +22,8 @@ import mediapipe as mp
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[1]
-DEFAULT_RESULTS_DIR = SCRIPT_DIR / "benchmark_results"
+PROJECT_ROOT = SCRIPT_DIR
+DEFAULT_RESULTS_DIR = SCRIPT_DIR.parent / "results"
 DEFAULT_SUMMARY_CSV = DEFAULT_RESULTS_DIR / "dg_wrist_rotate_summary.csv"
 DEFAULT_MEDIAPIPE_LABEL = "mediapipe_hands"
 
@@ -274,7 +274,7 @@ def main():
     ap.add_argument(
         "--frame-csv",
         default=None,
-        help="Per-frame CSV output path. Defaults to a timestamped file under benchmark_results/.",
+        help="Per-frame CSV output path. Defaults to a timestamped file under results/.",
     )
     ap.add_argument(
         "--summary-csv",

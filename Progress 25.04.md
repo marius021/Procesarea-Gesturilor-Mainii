@@ -4,6 +4,16 @@ Detailed project progress report for the hand-gesture-to-Braccio control project
 
 This document is based on the current repository state on 25.04.2026, the tracked commit history, the benchmark outputs already stored in the repo, and the project notes that are currently available. It aims to explain not only what files exist, but also what they mean in the evolution of the project and what each stage accomplished.
 
+> **Update (2026-06-07): repository reorganization.**
+> The repository has since been reorganized into a clearer top-level structure:
+> `current/` (the active CPU + Hailo implementation actually in use, plus the
+> DeGirum model `zoo/` and the Hailo virtual environment), `results/` (all
+> benchmark CSVs, plots, and the comparison report), `old/` (legacy and
+> exploratory implementations kept for history), and `Arduino/` (the firmware
+> sketches flashed to the arm). The historical narrative below has been kept
+> intact; file paths have been updated to point at their new locations, and
+> Section 3 now describes the reorganized layout.
+
 ## 1. Project Goal
 
 The main goal of this project is to control an Arduino Braccio robotic arm using human hand gestures captured by a webcam. In practice, the project evolved into several related sub-goals:
@@ -41,45 +51,47 @@ That means the work done so far spans computer vision, embedded communication, r
 
 ## 3. Repository Areas and Their Meaning
 
-The repository currently contains several important work areas:
+After the 2026-06-07 reorganization, the repository is grouped by purpose rather than by chronology. The important work areas are now:
 
-### `Braccio-test/`
+### `current/`
 
-This is the main experimental area for the Braccio robot. It includes:
+This is the active implementation actually used by the project. It deliberately holds **both** perception backends side by side, because they share the same control logic:
 
-- MediaPipe-based robot control scripts;
-- Arduino sketches used to drive the Braccio safely;
-- reference inverse-kinematics and calibration scripts;
-- older test utilities and manual control helpers.
+- `dg_braccio_hand_landmarks.py`, `dg_braccio_wrist_rotate.py` — the Hailo/DeGirum path;
+- `dg_braccio_wrist_rotate_benchmark.py` — the Hailo benchmark;
+- `mp_braccio_wrist_rotate_benchmark.py` — the CPU/MediaPipe benchmark;
+- `braccio_suture_demo_test.py` — the shared control/config module imported by the DeGirum scripts (serial config, joint limits, smoothing, hand-feature and motion-mapping helpers);
+- `dg_webcam_test.py` — a webcam/model browser for the local zoo;
+- `compare_benchmark_results.py`, `plot_benchmark_trajectories.py` — reporting tools;
+- `zoo/` — the local DeGirum model zoo (hand detector + landmark HEFs);
+- `venv_hailo_rpi_examples/` — the Hailo virtual environment, kept **in the same folder as the scripts** (not tracked in Git; recreated on the Raspberry Pi).
 
-### `demo hailo part1/`
+The `current/README.md` documents how to create the venv and run each script.
 
-This folder contains an earlier Hailo-focused exploration. It is not the current finalized Hailo pipeline, but it is important historically because it shows the first attempt to combine:
+### `results/`
 
-- webcam capture;
-- a hand-related Hailo inference path;
-- MediaPipe landmarks;
-- TCP command sending;
-- session logging.
+All evidence produced by the benchmark framework lives here, separated from code:
 
-In other words, this folder documents the first Hailo experimentation phase before the cleaner DeGirum-based version.
+- per-run summary CSVs (`dg_wrist_rotate_summary.csv`, `mp_wrist_rotate_summary.csv`);
+- per-frame benchmark CSVs;
+- `plots/` with generated trajectory and timing figures;
+- `benchmark_comparison.md`, the generated Hailo-vs-CPU report.
 
-### `demo-hailo-part2/Degirum/`
+### `old/`
 
-This is the newer and much more structured Hailo/DeGirum area. It contains:
+This folder preserves the earlier and exploratory implementations. They are kept for history, not for active use:
 
-- the local model zoo;
-- the DeGirum webcam test;
-- the DeGirum Braccio hand landmark script;
-- the wrist-rotation control demo;
-- the benchmark versions of the wrist-rotation demo;
-- stored benchmark CSV files and a markdown comparison report.
+- `old/Braccio-test/` — the original main experimental area: MediaPipe robot-control scripts, reference inverse-kinematics and calibration scripts (`braccio_ik_reference/`), Emil's manual serial test utilities (`python_scripts_Emil/`), the pseudocode design (`PROJECT_PSEUDOCODE.md`), and older test/manual helpers;
+- `old/demo hailo part1/` — the first, lower-level Hailo exploration before the cleaner DeGirum version;
+- `old/Test Scripts/` — additional experiments and validation utilities, including the suturing demo.
 
-This is currently the most mature part of the accelerated perception pipeline.
+### `Arduino/`
 
-### `Test Scripts/`
+The Braccio firmware sketches (`control_arm_bridge_safe.ino`, `controlArm_Safe.ino`, `Script-Arduino.ino`) are kept at the top level because they are still flashed to the arm regardless of which perception backend is used.
 
-This folder contains additional experiments and development scripts, including the suturing demo and other validation utilities. It reflects exploratory development and testing outside the more polished demo folders.
+### `Schemas/`
+
+Draw.io diagrams describing the system flow.
 
 ## 4. Progress Timeline So Far
 
@@ -104,7 +116,7 @@ This is a normal and necessary phase in robotics projects. Before advanced gestu
 
 ### Phase B: Formalizing the idea in pseudocode
 
-On 2026-03-24, the commit `Pseudo-code added` introduced the first structured description of the system. The file `PROJECT_PSEUDOCODE.md` explains the core idea:
+On 2026-03-24, the commit `Pseudo-code added` introduced the first structured description of the system. The file `old/Braccio-test/PROJECT_PSEUDOCODE.md` explains the core idea:
 
 - use a camera;
 - detect a hand;
@@ -211,11 +223,23 @@ At this point, the project produced not only working demos, but also a reproduci
 
 This is the point where the project becomes much easier to explain in a report, presentation, or thesis chapter because the implementation now has supporting metrics.
 
+### Phase H: Repository reorganization
+
+On 2026-06-07, the repository was reorganized for clarity and maintainability:
+
+- the active CPU + Hailo implementation and the model zoo were consolidated into `current/`, with the Hailo virtual environment placed in the same folder as the scripts;
+- all benchmark outputs were moved into a dedicated `results/` folder;
+- legacy and exploratory implementations were moved into `old/`;
+- the Arduino firmware sketches were promoted to a top-level `Arduino/` folder;
+- script path defaults (model zoo, results directory, module import path) and the project README were updated to match the new layout, and a stray runtime log was removed from version control.
+
+This phase did not change behavior; it made the project easier to navigate and explain.
+
 ## 5. Detailed Technical Explanation of What Was Built
 
 ## 5.1. The First Practical Control Idea
 
-The core initial idea of the project is preserved very clearly in `Braccio-test/PROJECT_PSEUDOCODE.md`.
+The core initial idea of the project is preserved very clearly in `old/Braccio-test/PROJECT_PSEUDOCODE.md`.
 
 The logic is intentionally simple and practical:
 
@@ -230,7 +254,7 @@ This was a strong starting point because it reduced the control problem to two h
 
 ## 5.2. MediaPipe-Based Braccio Control
 
-The script `Braccio-test/braccio_suture_demo_test.py` represents the main MediaPipe-driven Braccio control pattern.
+The script `braccio_suture_demo_test.py` represents the main MediaPipe-driven Braccio control pattern. Its archived original lives in `old/Braccio-test/braccio_suture_demo_test.py`, while the active copy now sits in `current/braccio_suture_demo_test.py`, where it doubles as the shared control/config module imported by the DeGirum scripts.
 
 The important ideas inside this script are:
 
@@ -246,7 +270,7 @@ The important ideas inside this script are:
 
 `CMD,base,shoulder,elbow,wrist_vertical,wrist_rotation,gripper`
 
-The script computes hand-derived features from MediaPipe landmarks. In the version in `Braccio-test/`, palm height is derived from:
+The script computes hand-derived features from MediaPipe landmarks. In this version, palm height is derived from:
 
 - wrist;
 - index MCP;
@@ -272,7 +296,7 @@ This is already a good example of applied human-in-the-loop robot control, not j
 
 ## 5.3. Arduino Safety Bridge
 
-The file `Braccio-test/Script-Arduino/control_arm_bridge_safe.ino` shows that the robot side was also treated carefully.
+The file `Arduino/control_arm_bridge_safe.ino` shows that the robot side was also treated carefully.
 
 This Arduino sketch:
 
@@ -292,7 +316,7 @@ That is one of the strongest engineering choices in the repo so far.
 
 ## 5.4. Manual Serial Test Utilities
 
-Inside `Braccio-test/python_scripts_Emil/`, the scripts `SerialComArduino.py` and `testArm.py` provide a simpler manual testing path.
+Inside `old/Braccio-test/python_scripts_Emil/`, the scripts `SerialComArduino.py` and `testArm.py` provide a simpler manual testing path.
 
 These scripts make it possible to:
 
@@ -305,7 +329,7 @@ This kind of tooling is useful because it separates robot debugging from camera 
 
 ## 5.5. Suturing-Like Motion Experiment
 
-The file `Test Scripts/braccio_suture_demo.py` shows that the project evolved beyond direct gesture mirroring. It introduced a higher-level structured motion sequence inspired by suturing-like behavior.
+The file `old/Test Scripts/braccio_suture_demo.py` shows that the project evolved beyond direct gesture mirroring. It introduced a higher-level structured motion sequence inspired by suturing-like behavior.
 
 This script contains:
 
@@ -322,7 +346,7 @@ That shows the project is exploring not only teleoperation, but also task-level 
 
 ## 5.6. Calibration and Inverse Kinematics
 
-The folder `Braccio-test/braccio_ik_reference/` documents another important direction: moving from joint-space heuristics toward Cartesian control.
+The folder `old/Braccio-test/braccio_ik_reference/` documents another important direction: moving from joint-space heuristics toward Cartesian control.
 
 The file `CALIBRATION_STEPS.md` describes a calibration procedure for:
 
@@ -350,9 +374,9 @@ The file `braccio_cartesian_controller.py` builds on that and adds:
 
 This means the project has already gone beyond raw servo tuning and started formal robot modeling. That is an advanced direction and gives the project a clear future path if more precise manipulation is needed.
 
-## 5.7. Early Hailo Exploration in `demo hailo part1`
+## 5.7. Early Hailo Exploration in `old/demo hailo part1`
 
-The scripts in `demo hailo part1/` show the earlier acceleration experiments before the DeGirum version was organized.
+The scripts in `old/demo hailo part1/` show the earlier acceleration experiments before the DeGirum version was organized.
 
 The non-AI script `rpi_hand_ui_hailo_noai.py` includes:
 
@@ -374,11 +398,11 @@ The AI script `rpi_hand_ui_hailo_ai.py` extends this by adding:
 
 This phase is important because it shows that the project first experimented with Hailo in a more direct, lower-level way before adopting the cleaner DeGirum interface later.
 
-So this folder is not obsolete; it represents the exploratory bridge between concept and the current Hailo path.
+So this folder is not obsolete in meaning; it represents the exploratory bridge between concept and the current Hailo path, which is why it is preserved under `old/`.
 
 ## 5.8. DeGirum/Hailo Braccio Hand-Landmarks Demo
 
-The script `demo-hailo-part2/Degirum/scripts/dg_braccio_hand_landmarks.py` shows a more mature accelerated implementation.
+The script `current/dg_braccio_hand_landmarks.py` shows a more mature accelerated implementation.
 
 Its design is very clever because it reuses logic from the earlier Braccio script instead of rewriting everything from scratch. The script:
 
@@ -388,16 +412,16 @@ Its design is very clever because it reuses logic from the earlier Braccio scrip
 - expands that box slightly for landmark robustness;
 - runs the landmark model on the crop;
 - converts crop-relative landmarks back into full-frame normalized coordinates;
-- reuses the existing hand-feature and motion-mapping functions from the Braccio configuration module;
+- reuses the existing hand-feature and motion-mapping functions from the Braccio configuration module (`current/braccio_suture_demo_test.py`);
 - reuses the same smoothing, pose sanitization, rate limiting, heartbeat, and serial send logic.
 
 This is a strong design choice because it isolates the backend change mainly to perception. The motion-control logic remains conceptually consistent.
 
-In other words, the project did not build two unrelated systems. It built one control concept that can run on two perception backends.
+In other words, the project did not build two unrelated systems. It built one control concept that can run on two perception backends — which is exactly why both backends now live together in `current/`.
 
 ## 5.9. Wrist-Rotation Demo on DeGirum/Hailo
 
-The script `demo-hailo-part2/Degirum/scripts/dg_braccio_wrist_rotate.py` is one of the clearest signs of feature maturity.
+The script `current/dg_braccio_wrist_rotate.py` is one of the clearest signs of feature maturity.
 
 It implements a specific and intentional gesture-controlled routine:
 
@@ -416,8 +440,8 @@ That is probably why this script became the basis for the benchmark setup.
 
 The benchmark scripts:
 
-- `demo-hailo-part2/Degirum/scripts/dg_braccio_wrist_rotate_benchmark.py`
-- `demo-hailo-part2/Degirum/scripts/mp_braccio_wrist_rotate_benchmark.py`
+- `current/dg_braccio_wrist_rotate_benchmark.py`
+- `current/mp_braccio_wrist_rotate_benchmark.py`
 
 are a very significant achievement.
 
@@ -433,13 +457,15 @@ Together, these scripts add:
 - optional dry-run serial mode;
 - a consistent schema across Hailo and CPU backends.
 
+Both scripts now write their CSV output to the shared `results/` folder by default.
+
 This matters because it converts the demos into measurable experiments. The project is no longer relying only on visual impression.
 
 Another strength is that these benchmark scripts preserve the behavior of the original demos while adding instrumentation around them. That reduces the risk that the benchmark accidentally measures a different behavior than the real demo.
 
 ## 5.11. Benchmark Comparison Report
 
-The script `demo-hailo-part2/Degirum/scripts/compare_benchmark_results.py` reads the Hailo and CPU summary CSVs and produces a markdown report.
+The script `current/compare_benchmark_results.py` reads the Hailo and CPU summary CSVs and produces a markdown report.
 
 The script:
 
@@ -449,9 +475,11 @@ The script:
 - computes FPS min/max range;
 - generates a backend comparison table;
 - generates a per-run comparison table;
-- writes the result to `benchmark_results/benchmark_comparison.md`.
+- writes the result to `results/benchmark_comparison.md`.
 
-This is valuable because it gives the project a reusable reporting step. Once new benchmark data exists, a comparison report can be rebuilt immediately.
+A companion script, `current/plot_benchmark_trajectories.py`, reads the same summary CSVs and renders trajectory and timing figures into `results/plots/`.
+
+This is valuable because it gives the project a reusable reporting step. Once new benchmark data exists, a comparison report and its plots can be rebuilt immediately.
 
 ## 6. What the Current Benchmark Data Shows
 
@@ -521,7 +549,8 @@ At this stage, the project has already achieved a lot:
 - a more mature DeGirum/Hailo implementation;
 - a dedicated wrist-rotation demo;
 - a reusable benchmark framework;
-- stored measurement data and a generated comparison report.
+- stored measurement data and a generated comparison report;
+- a clean, purpose-based repository layout that separates the active implementation, its results, and the historical work.
 
 This is not a small amount of work. The repository shows substantial progress across software, robotics logic, and experimental validation.
 
@@ -549,7 +578,7 @@ This staged evolution is exactly how a real robotics/computer-vision project sho
 
 ## 9. Current Limitations and Open Issues
 
-The repo also shows that some areas are still in progress or would benefit from cleanup.
+The repo also shows that some areas are still in progress or would benefit from further work.
 
 ### 9.1. Benchmark instability on CPU
 
@@ -559,16 +588,9 @@ The CPU benchmark contains two clearly degraded runs. This means:
 - serial timing or blocking behavior likely needs more investigation;
 - a filtered "stable runs only" table would improve clarity.
 
-### 9.2. Some logic exists in multiple places
+### 9.2. Shared logic across backends
 
-There are related scripts across:
-
-- `Braccio-test/`
-- `demo hailo part1/`
-- `demo-hailo-part2/`
-- `Test Scripts/`
-
-This is natural in an experimental project, but it means long-term maintainability would improve if the shared control logic were consolidated.
+The 2026-06-07 reorganization improved this: the active CPU and Hailo scripts now live together in `current/` and share a single control/config module (`current/braccio_suture_demo_test.py`), while older duplicates were moved out to `old/`. A remaining improvement would be to factor more of the common helper logic (smoothing, rate limiting, packet building) into a small shared library rather than relying on one demo module doubling as configuration.
 
 ### 9.3. Accuracy and task success are not fully benchmarked yet
 
@@ -581,7 +603,7 @@ The current benchmark focuses on timing and event rates. It does not yet fully m
 
 ### 9.4. Calibration work appears promising but not fully integrated everywhere
 
-The inverse-kinematics and calibration work is advanced, but it still looks like a reference branch of the project rather than the one unified control stack used everywhere.
+The inverse-kinematics and calibration work is advanced, but it still looks like a reference branch of the project (now under `old/Braccio-test/braccio_ik_reference/`) rather than the one unified control stack used everywhere.
 
 ## 10. Recommended Next Steps
 
@@ -589,7 +611,7 @@ Based on the current state of the repository, the most logical next steps would 
 
 1. add a filtered benchmark summary that excludes the obviously degraded CPU runs;
 2. investigate the source of high serial times in the slow CPU benchmark runs;
-3. consolidate shared helper logic so MediaPipe and DeGirum variants reuse more common code;
+3. continue consolidating shared helper logic into a dedicated module so the MediaPipe and DeGirum variants reuse common code beyond the current shared config;
 4. decide whether the future direction is:
    - direct gesture teleoperation,
    - predefined task triggers,
@@ -606,7 +628,8 @@ So far, this project has evolved from a simple idea of "move a robot arm with ha
 - multiple control strategies;
 - Hailo acceleration;
 - reproducible benchmarking;
-- measurable evidence of backend performance differences.
+- measurable evidence of backend performance differences;
+- a clean repository structure separating active code, results, and history.
 
 The strongest current achievements are:
 
@@ -619,4 +642,4 @@ In short, the project is no longer in the "concept only" stage. It already has w
 
 ## 12. Short One-Paragraph Version for a Report
 
-Up to 25.04.2026, the project has progressed from early Braccio arm stabilization and servo-control tests to a complete vision-based gesture-control pipeline. A first MediaPipe implementation was developed to map hand position and finger geometry to robot joint commands, with smoothing, rate limiting, and failsafe behavior. In parallel, safe Arduino bridge code was created to parse commands, clamp servo limits, and return the arm to neutral on timeout. The project then expanded into suturing-like motion experiments and an inverse-kinematics/calibration reference branch for Cartesian control. After that, a Hailo-based perception path was introduced, first through direct experiments and later through a cleaner DeGirum-based implementation using local hand-detection and landmark models. This led to a dedicated wrist-rotation demo and, finally, to a benchmark framework that logs frame-by-frame and run-level timing data for both Hailo and CPU backends. The current measurements show that Hailo/DeGirum is clearly faster and more stable than the CPU pipeline in the recorded tests, while the CPU results are affected by several degraded runs with very high serial timing.
+Up to 25.04.2026, the project has progressed from early Braccio arm stabilization and servo-control tests to a complete vision-based gesture-control pipeline. A first MediaPipe implementation was developed to map hand position and finger geometry to robot joint commands, with smoothing, rate limiting, and failsafe behavior. In parallel, safe Arduino bridge code was created to parse commands, clamp servo limits, and return the arm to neutral on timeout. The project then expanded into suturing-like motion experiments and an inverse-kinematics/calibration reference branch for Cartesian control. After that, a Hailo-based perception path was introduced, first through direct experiments and later through a cleaner DeGirum-based implementation using local hand-detection and landmark models. This led to a dedicated wrist-rotation demo and, finally, to a benchmark framework that logs frame-by-frame and run-level timing data for both Hailo and CPU backends. The current measurements show that Hailo/DeGirum is clearly faster and more stable than the CPU pipeline in the recorded tests, while the CPU results are affected by several degraded runs with very high serial timing. As of 2026-06-07 the repository has also been reorganized into `current/` (active CPU + Hailo code, model zoo, and venv), `results/` (benchmark data and report), `old/` (legacy work), and `Arduino/` (firmware), making the project easier to navigate and present.

@@ -1,5 +1,7 @@
 .venv/
+venv_hailo_rpi_examples/
 __pycache__/
 *.pyc
 .DS_Store
 hailo-rpi5-examples
+hailort.log

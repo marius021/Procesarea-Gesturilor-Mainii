@@ -21,5 +21,5 @@ Per-run comparison
 
 Source files
 
-- Hailo summary: `/home/maurice/Desktop/Procesarea-Gesturilor-Mainii/demo-hailo-part2/Degirum/scripts/benchmark_results/dg_wrist_rotate_summary.csv`
-- CPU summary: `/home/maurice/Desktop/Procesarea-Gesturilor-Mainii/demo-hailo-part2/Degirum/scripts/benchmark_results/mp_wrist_rotate_summary.csv`
+- Hailo summary: `/home/maurice/Desktop/Procesarea-Gesturilor-Mainii/results/dg_wrist_rotate_summary.csv`
+- CPU summary: `/home/maurice/Desktop/Procesarea-Gesturilor-Mainii/results/mp_wrist_rotate_summary.csv`

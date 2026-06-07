@@ -3,7 +3,7 @@
 Generate trajectory and summary plots from stored wrist-rotation benchmark CSVs.
 
 The script reads the existing summary CSVs to discover per-run frame CSVs,
-filters to measured frames only, and writes PNG plots under benchmark_results/.
+filters to measured frames only, and writes PNG plots under results/plots/.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from statistics import mean
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = SCRIPT_DIR / "benchmark_results"
+RESULTS_DIR = SCRIPT_DIR.parent / "results"
 DEFAULT_HAILO_SUMMARY = RESULTS_DIR / "dg_wrist_rotate_summary.csv"
 DEFAULT_CPU_SUMMARY = RESULTS_DIR / "mp_wrist_rotate_summary.csv"
 DEFAULT_OUTPUT_DIR = RESULTS_DIR / "plots"
@@ -30,9 +30,8 @@ try:
     import matplotlib
 except ModuleNotFoundError as exc:
     raise SystemExit(
-        "Missing matplotlib. Run this script with a repo venv, for example "
-        "'./Braccio-test/.venv/bin/python' or "
-        "'./Braccio-test/Degirum/venv_hailo_rpi_examples/bin/python'."
+        "Missing matplotlib. Run this script with the repo venv, for example "
+        "'./current/venv_hailo_rpi_examples/bin/python'."
     ) from exc
 
 matplotlib.use("Agg")

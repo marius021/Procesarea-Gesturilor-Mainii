@@ -6,7 +6,7 @@ from urllib.parse import unquote, urlparse
 import cv2
 
 
-DEFAULT_ZOO_DIR = Path(__file__).resolve().parents[1] / "zoo"
+DEFAULT_ZOO_DIR = Path(__file__).resolve().parent / "zoo"
 
 
 def _import_degirum():

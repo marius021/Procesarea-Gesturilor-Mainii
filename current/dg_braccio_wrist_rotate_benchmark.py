@@ -23,9 +23,9 @@ import cv2
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[1]
-DEFAULT_ZOO_DIR = SCRIPT_DIR.parents[1] / "Degirum" / "zoo"
-DEFAULT_RESULTS_DIR = SCRIPT_DIR / "benchmark_results"
+PROJECT_ROOT = SCRIPT_DIR
+DEFAULT_ZOO_DIR = SCRIPT_DIR / "zoo"
+DEFAULT_RESULTS_DIR = SCRIPT_DIR.parent / "results"
 DEFAULT_SUMMARY_CSV = DEFAULT_RESULTS_DIR / "dg_wrist_rotate_summary.csv"
 
 if str(PROJECT_ROOT) not in sys.path:
@@ -128,7 +128,7 @@ def _import_degirum():
         import degirum as dg
     except ModuleNotFoundError as exc:
         raise SystemExit(
-            "Missing Python package 'degirum'. Activate Degirum/venv_hailo_rpi_examples first, "
+            "Missing Python package 'degirum'. Activate venv_hailo_rpi_examples first, "
             "or install degirum in the interpreter you are using."
         ) from exc
     return dg
@@ -396,7 +396,7 @@ def main():
     ap.add_argument(
         "--zoo",
         default=str(DEFAULT_ZOO_DIR),
-        help="Local DeGirum zoo folder or file:// URL. Defaults to Degirum/zoo in this repo.",
+        help="Local DeGirum zoo folder or file:// URL. Defaults to the zoo/ folder next to this script.",
     )
     ap.add_argument("--camera", default="/dev/video0")
     ap.add_argument("--detector", default="yolov8n_relu6_hand--640x640_quant_hailort_hailo8_1")
@@ -429,7 +429,7 @@ def main():
     ap.add_argument(
         "--frame-csv",
         default=None,
-        help="Per-frame CSV output path. Defaults to a timestamped file under benchmark_results/.",
+        help="Per-frame CSV output path. Defaults to a timestamped file under results/.",
     )
     ap.add_argument(
         "--summary-csv",
