@@ -16,10 +16,15 @@ import cv2
 import mediapipe as mp
 import serial
 
+import hmac
+import hashlib
+
 
 SERIAL_PORT = "/dev/ttyACM0"
 BAUD_RATE = 115200
 READ_ACK = True
+HMAC_SECRET_KEY = b"braccio-key-2026"
+HMAC_ENABLED = True
 
 CAM_INDEX = 0
 SEND_INTERVAL = 0.08
@@ -146,9 +151,13 @@ def build_packet(pose: Dict[str, int]) -> str:
         f"{pose['wrist_vertical']},{pose['wrist_rotation']},{pose['gripper']}\n"
     )
 
-
 def send_pose(ser: serial.Serial, pose: Dict[str, int]) -> Optional[str]:
-    ser.write(build_packet(pose).encode("utf-8"))
+    packet = build_packet(pose)
+    if HMAC_ENABLED:
+        payload = packet.strip()                       # CMD,...  without newline
+        sig = hmac.new(HMAC_SECRET_KEY, payload.encode("ascii"), hashlib.sha256)
+        packet = payload + "|" + sig.hexdigest()[:8] + "\n"
+    ser.write(packet.encode("utf-8"))
     if not READ_ACK:
         return None
     try:
